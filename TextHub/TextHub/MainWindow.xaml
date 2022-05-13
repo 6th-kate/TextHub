@@ -1,0 +1,493 @@
+﻿<Window x:Class="TextHub.MainWindow"
+        x:Name="MainTextHubWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:diffplex="clr-namespace:DiffPlex.Wpf.Controls;assembly=DiffPlex.Wpf"
+        xmlns:local="clr-namespace:TextHub"
+        mc:Ignorable="d"
+        Title="TextHub" Height="600" Width="1080" MinWidth="810">
+
+    <Window.Resources>
+        <Style x:Key="darkerAreas">
+            <Setter Property="Control.Background" Value="#693F78"/>
+        </Style>
+        <Style x:Key="lighterAreas">
+            <Setter Property="Control.Background" Value="#83679E"/>
+        </Style>
+        <DataTemplate x:Key="documentsListTemplate">
+            <Grid Margin="3" Width="235">
+                <TextBlock FontSize="16" Text="{Binding Path=Title}"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Center"/>
+                <Button Background="Transparent"
+                        HorizontalAlignment="Right" 
+                        BorderThickness="0"
+                        Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext.DeleteCommand}"
+                        CommandParameter="{Binding}"
+                        Margin="0 0 10 0">
+                    <Image Source="Resources/CloseImage.png"/>
+                </Button>
+            </Grid>
+        </DataTemplate>
+        <Style x:Key="documentsItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Height" Value="50" />
+            <Setter Property="Background" Value="#83679E"/>
+        </Style>
+        <DataTemplate x:Key="documentVersionsListTemplate">
+            <Grid Style="{StaticResource lighterAreas}">
+                <ListBox Style="{StaticResource lighterAreas}"
+                         ItemsSource="{Binding Path=Versions}"
+                         SelectedItem="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext.SelectedVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         ItemTemplate="{StaticResource documentsListTemplate}"
+                         ItemContainerStyle="{StaticResource documentsItemStyle}"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                </ListBox>
+            </Grid>
+        </DataTemplate>
+
+
+        <Style x:Key="tabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+
+        <Style x:Key="formatTabButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+        <Style x:Key="formatTabtoggleButtonStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="3"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="DocumentsMenu" Width="{Binding Path=DocumentsMenuWidth}"/>
+            <ColumnDefinition MinWidth="300"/>
+            <ColumnDefinition x:Name="VersionsMenu" Width="{Binding Path=VersionsMenuWidth}"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid  Grid.Column="0" Grid.Row="0" Style="{StaticResource darkerAreas}">
+            <Button x:Name="DocumentsMenuCloseButton" 
+                    Margin="3" Height="40" Width="40"
+                    VerticalAlignment="Top" HorizontalAlignment="Left"
+                    Style="{StaticResource darkerAreas}"
+                    BorderThickness="0" 
+                    Visibility="{Binding Path=DocumentsMenuCloseButtonVisibility}" 
+                    Command="{Binding CloseDocumentMenuCommand}"
+                    ToolTip="Свернуть панель документов">
+                <Image Source="Resources/CloseImage.png"/>
+            </Button>
+            <Button x:Name="DocumentsMenuOpenButton"
+                    Margin="3" Height="40" Width="40"
+                    VerticalAlignment="Top" HorizontalAlignment="Right"
+                    Style="{StaticResource darkerAreas}" 
+                    BorderThickness="0" 
+                    Visibility="{Binding Path=DocumentsMenuOpenButtonVisibility}" 
+                    Command="{Binding OpenDocumentMenuCommand}"
+                    ToolTip="Развернуть панель документов">
+                <Image Source="Resources/MenuImage.png"/>
+            </Button>
+        </Grid>
+        <StackPanel Grid.Column="0" Grid.Row="1" Style="{StaticResource lighterAreas}" Orientation="Vertical">
+            <ListBox x:Name="DocumentsMenuListBox"
+                     ItemsSource="{Binding Path=TextHubProjects}"
+                     Style="{StaticResource lighterAreas}" 
+                     ItemTemplate="{StaticResource documentsListTemplate}"
+                     ItemContainerStyle="{StaticResource documentsItemStyle}"
+                     BorderThickness="0"
+                     Visibility="{Binding DocumentsListVisibility}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     SelectedItem="{Binding Path=SelectedProject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <TabControl Grid.Column="1" Grid.Row="0">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Grid Name="Panel">
+                                    <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="10,2"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Panel" Property="Style"
+                                                Value="{StaticResource lighterAreas}" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="Panel" Property="Background"
+                                                Value="White" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabItem Header="Файл" Visibility="{Binding Path=FileTabVisibility}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="1"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" Width="120" HorizontalAlignment="Left">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="15*"/>
+                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="9*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Column="0" Grid.Row="0"
+                                Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Новый проект"
+                                Command="{Binding NewDocumentCommand}"
+                                CommandParameter="{Binding ElementName=MainTextHubWindow}"
+                                Margin="3,3,3,3">
+                            <Image Source="Resources/createProjectImage.png"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="0"
+                                Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Открыть документ" Grid.ColumnSpan="3"
+                                Margin="0,3,3,3"
+                                Command="{Binding OpenDocumentCommand}"
+                                CommandParameter="{Binding ElementName=MainTextHubWindow}"
+                                HorizontalAlignment="Right" Width="54">
+                            <Image Source="Resources/openProjectImage.png"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="1"
+                                Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Открыть проект" Grid.ColumnSpan="3"
+                                Margin="3,3,3,3"
+                                Command="{Binding OpenProjectCommand}"
+                                CommandParameter="{Binding ElementName=MainTextHubWindow}">
+                            <Image Source="Resources/openImage.png"/>
+                        </Button>
+                        <Button Grid.Column="0" Grid.Row="1"
+                                Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Сохранить"
+                                Visibility="{Binding Path=SaveButtonVisibility}"
+                                Margin="3,0,3,3" Height="55" VerticalAlignment="Bottom"
+                                Command="{Binding SaveCommand}">
+                            <Image Source="Resources/saveImage.png"/>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Column="2" Width="60" HorizontalAlignment="Right">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Сохранить как новую версию"
+                                Visibility="{Binding Path=SaveAsNewVersionButtonVisibility}"
+                                Command="{Binding SaveNewVersionCommand}"
+                                CommandParameter="{Binding ElementName=MainTextHubWindow}">
+                            <Image Source="Resources/newBookmarkImage.png"/>
+                        </Button>
+                        <Button Grid.Row="1" Style="{StaticResource tabButtonStyle}"
+                                ToolTip="Создать подпроект"
+                                Visibility="{Binding Path=MakeNewSubprojectButtonVisibility}"
+                                Command="{Binding MakeNewSubprojectCommand}"
+                                CommandParameter="{Binding ElementName=MainTextHubWindow}"
+                                HorizontalAlignment="Left" Margin="3,3,0,3" Width="54">
+                            <Image Source="Resources/addSubversion.png"/>
+                        </Button>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Формат" Height="20"
+                     VerticalAlignment="Top"
+                     Visibility="{Binding Path=EditingTabVisibility}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition MinWidth="125"/>
+                        <ColumnDefinition Width="1"/>
+                        <ColumnDefinition MinWidth="85"/>
+                        <ColumnDefinition Width="1"/>
+                        <ColumnDefinition MinWidth="40"/>
+                        <ColumnDefinition Width="1"/>
+                        <ColumnDefinition MinWidth="40"/>
+                    </Grid.ColumnDefinitions>
+                    <GridSplitter Grid.Column="1" Style="{StaticResource lighterAreas}"
+                                  HorizontalAlignment="Stretch"/>
+                    <GridSplitter Grid.Column="3" Style="{StaticResource lighterAreas}"
+                                  HorizontalAlignment="Stretch"/>
+                    <GridSplitter Grid.Column="5" Style="{StaticResource lighterAreas}" 
+                                  HorizontalAlignment="Stretch"/>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Изменить шрифт"
+                                    Command="{Binding ChangeFontCommand}"
+                                    CommandParameter="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/fontsImage.png"/>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Увеличить шрифт"
+                                    Command="EditingCommands.IncreaseFontSize" 
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/upperCaseImage.png" Height="30"/>
+                            </Button>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Уменьшить шрифт"
+                                    Command="EditingCommands.DecreaseFontSize"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/lowerCaseImage.png"/>
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Выделить жирным"
+                                    Command="EditingCommands.ToggleBold"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/boldImage.png"/>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Выделить курсивом"
+                                    Command="EditingCommands.ToggleItalic"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/italicImage.png" Height="30"/>
+                            </Button>
+                            <Button Grid.Column="2"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Подчеркнуть"
+                                    Command="EditingCommands.ToggleUnderline"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/underlineImage.png"/>
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0"
+                                    Style="{StaticResource  formatTabButtonStyle}"
+                                    ToolTip="Установить цвет"
+                                    Command="{Binding ColorTextCommand}"
+                                    CommandParameter="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/colorTextImage.png"/>
+                            </Button>
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Выделить"
+                                    Command="{Binding HighlightTextCommand}"
+                                    CommandParameter="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/hightlightTextImage.png" Height="30"/>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                    <Grid Grid.Column="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Column="0" Grid.Row="0"
+                                Style="{StaticResource  formatTabButtonStyle}"
+                                ToolTip="Выровнять по левому краю"
+                                Command="EditingCommands.AlignLeft"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/alignLeftImage.png"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="0"
+                                Style="{StaticResource  formatTabButtonStyle}"
+                                ToolTip="Выровнять по правому краю"
+                                Command="EditingCommands.AlignRight"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/alignRightImage.png"/>
+                        </Button>
+                        <Button Grid.Column="0" Grid.Row="1"
+                                Style="{StaticResource  formatTabButtonStyle}"
+                                ToolTip="Выровнять по центру"
+                                Command="EditingCommands.AlignCenter"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/alighCenterImage.png"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="1"
+                                Style="{StaticResource  formatTabButtonStyle}"
+                                ToolTip="Растянуть"
+                                Command="EditingCommands.AlignJustify"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/alignJustifyImage.png"/>
+                        </Button>
+                        <Button Grid.Column="0" Grid.Row="2"
+                                Style="{StaticResource formatTabButtonStyle}"
+                                ToolTip="Уменьшить отступ"
+                                Command="EditingCommands.DecreaseIndentation"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/increaseIndentImage.png"/>
+                        </Button>
+                        <Button Grid.Column="1" Grid.Row="2"
+                                Style="{StaticResource  formatTabButtonStyle}"
+                                ToolTip="Увеличить отступ"
+                                Command="EditingCommands.IncreaseIndentation"
+                                CommandTarget="{Binding ElementName=MainRTB}">
+                            <Image Source="Resources/decraeaseIndentImage.png"/>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Column="4">
+                        <StackPanel Orientation="Vertical">
+                            <Button Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Вставить изображение из буфера обмена"
+                                    Command="{Binding PasteImageCommand}"
+                                    CommandParameter="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/pasteImage.png" Height="30"/>
+                            </Button>
+                            <Button Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Вставить изображение из памяти"
+                                    Command="{Binding InsertImageCommand}"
+                                    CommandParameter="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/uploadImage.png" Height="30"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Grid.Column="6">
+                        <StackPanel Orientation="Vertical">
+                            <Button Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Нумерованный список"
+                                    Command="EditingCommands.ToggleNumbering"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/numberingImage.png" Height="30"/>
+                            </Button>
+                            <Button Style="{StaticResource formatTabButtonStyle}"
+                                    ToolTip="Ненумерованный список"
+                                    Command="EditingCommands.ToggleBullets"
+                                    CommandTarget="{Binding ElementName=MainRTB}">
+                                <Image Source="Resources/bubblesImage.png" Height="30"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Сравнение"
+                     Visibility="{Binding Path=ComparisonTabVisibility}" HorizontalAlignment="Right" Width="81">
+                <StackPanel Orientation="Horizontal" Grid.Column="0">
+                    <Button Style="{StaticResource tabButtonStyle}"
+                            Visibility="{Binding CompareToPreceedingVersionButtonVisibility}"
+                            Command="{Binding CompareToPreviousCommand}">
+                        <StackPanel Orientation="Vertical" MaxWidth="80">
+                            <Image Source="Resources/compareToLastImage.png" Height="60"/>
+                            <TextBlock Margin="3" HorizontalAlignment="Center"
+                                       Text="Сравнить с предыдущей" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource tabButtonStyle}"
+                            Visibility="{Binding ChooseVersionToCompareButtonVisibility}"
+                            Command="{Binding CompareToChosenVersionCommand}"
+                            CommandParameter="{Binding ElementName=MainTextHubWindow}">
+                        <StackPanel Orientation="Vertical" MaxWidth="70">
+                            <Image Source="Resources/compareTwoVersionsImage.png" Height="60"/>
+                            <TextBlock Margin="3" HorizontalAlignment="Center"
+                                       Text="Сравнить две версии" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource tabButtonStyle}"
+                            Visibility="{Binding Path=CloseComparisonButtonVisibility}"
+                            MaxWidth="70"
+                            Command="{Binding CloseComparisonCommand}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="Resources/CloseImage.png" Height="60"/>
+                            <TextBlock HorizontalAlignment="Center" 
+                                       Text="Закрыть сравнение" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <Grid Grid.Column="2" Grid.Row="0" Style="{StaticResource darkerAreas}">
+            <Button Margin="3" Height="40" Width="40" 
+                    VerticalAlignment="Top" HorizontalAlignment="Right" 
+                    Style="{StaticResource darkerAreas}"
+                    BorderThickness="0"
+                    Visibility="{Binding Path=VersionsMenuCloseButtonVisibility}"
+                    Command="{Binding Path=CloseVersionsMenuCommand}"
+                    ToolTip="Свернуть панель версий">
+                <Image Source="Resources/CloseImage.png"/>
+            </Button>
+            <Button Margin="3" Height="40" Width="40" 
+                    VerticalAlignment="Top" HorizontalAlignment="Left"
+                    Style="{StaticResource darkerAreas}"
+                    BorderThickness="0"
+                    Visibility="{Binding Path=VersionsMenuOpenButtonVisibility}"
+                    Command="{Binding Path=OpenVersionsMenuCommand}"
+                    ToolTip="Развернуть панель версий">
+                <Image Source="Resources/MenuImage.png"/>
+            </Button>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="1">
+            <RichTextBox x:Name="MainRTB"
+                         Visibility="{Binding Path=MainRTBVisibility}"
+                         local:RichTextBoxHelper.DocumentRTF="{Binding CurrentText}"
+                         IsReadOnly="{Binding Path=EditingBlocked}"
+                         AcceptsTab="True"/>
+            <diffplex:DiffViewer x:Name="DiffView"
+                                 Visibility="{Binding Path=DiffViewVisibility}"
+                                 OldText="{Binding OldText}"
+                                 NewText="{Binding NewText}"
+                                 NewTextHeader="{Binding NewTextHeader}"
+                                 OldTextHeader="{Binding OldTextHeader}"/>
+        </Grid>
+
+        <Grid Style="{StaticResource lighterAreas}"
+              Grid.Row="1" Grid.Column="2">
+            <TabControl Style="{StaticResource lighterAreas}"
+                    BorderThickness="0"
+                    ContentTemplate="{StaticResource documentVersionsListTemplate}"
+                    ItemsSource="{Binding Path=TextHubProjects}"
+                    SelectedItem="{Binding Path=SelectedProject}"
+                    Visibility="{Binding VersionsListVisibility}">
+                <TabControl.ItemContainerStyle>
+                    <Style TargetType="{x:Type TabItem}">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                    </Style>
+                </TabControl.ItemContainerStyle>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>

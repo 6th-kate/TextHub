@@ -1,0 +1,172 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+      <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="CloseImage.png" />
+    <None Remove="createProjectImage.png" />
+    <None Remove="fontsImage.png" />
+    <None Remove="hightlightTextImage.png" />
+    <None Remove="openImage.png" />
+    <None Remove="openProjectImage.png" />
+    <None Remove="Resources\addSubversion.png" />
+    <None Remove="Resources\alighCenterImage.png" />
+    <None Remove="Resources\alignJustifyImage.png" />
+    <None Remove="Resources\alignLeftImage.png" />
+    <None Remove="Resources\alignRightImage.png" />
+    <None Remove="Resources\boldImage.png" />
+    <None Remove="Resources\bubblesImage.png" />
+    <None Remove="Resources\CloseImage.bmp" />
+    <None Remove="Resources\CloseImage.png" />
+    <None Remove="Resources\colorTextImage.png" />
+    <None Remove="Resources\compareToLastImage.png" />
+    <None Remove="Resources\compareTwoVersionsImage.png" />
+    <None Remove="Resources\createProjectImage.png" />
+    <None Remove="Resources\decraeaseIndentImage.png" />
+    <None Remove="Resources\fontsImage.png" />
+    <None Remove="Resources\highlightImage.png" />
+    <None Remove="Resources\hightlightTextImage.png" />
+    <None Remove="Resources\increaseIndentImage.png" />
+    <None Remove="Resources\italicImage.png" />
+    <None Remove="Resources\lowerCaseImage.png" />
+    <None Remove="Resources\MenuImage.png" />
+    <None Remove="Resources\newBookmarkImage.png" />
+    <None Remove="Resources\newVersionImage.png" />
+    <None Remove="Resources\numberingImage.png" />
+    <None Remove="Resources\openImage.png" />
+    <None Remove="Resources\openProjectImage.png" />
+    <None Remove="Resources\pasteImage.png" />
+    <None Remove="Resources\PlusImage.png" />
+    <None Remove="Resources\saveImage.png" />
+    <None Remove="Resources\underlineImage.png" />
+    <None Remove="Resources\uploadImage.png" />
+    <None Remove="Resources\upperCaseImage.png" />
+    <None Remove="saveImage.png" />
+    <None Remove="upperCaseImage.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DiffPlex.Wpf" Version="1.3.1" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\addSubversion.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\alighCenterImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\alignJustifyImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\alignLeftImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\alignRightImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\boldImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\bubblesImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\CloseImage.bmp">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\CloseImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\colorTextImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\compareToLastImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\compareTwoVersionsImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\createProjectImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\decraeaseIndentImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\fontsImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\highlightImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\hightlightTextImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\increaseIndentImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\italicImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\lowerCaseImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\MenuImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\newBookmarkImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\newVersionImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\numberingImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\openImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\openProjectImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\pasteImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\PlusImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\saveImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\underlineImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\uploadImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\upperCaseImage.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
