@@ -66,38 +66,26 @@ namespace TextHub
         /// </summary>
         public class NewDocumentCommand : ICommand
         {
-            // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
-            // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
             {
                 add { CommandManager.RequerySuggested += value; }
                 remove { CommandManager.RequerySuggested -= value; }
             }
 
-            /// <summary>
-            /// Initialises a new instance of NewDocumentCommand
-            /// </summary>
-            /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal NewDocumentCommand(TextHubViewModel viewModel)
+            internal NewDocumentCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
-            /// <summary>
-            /// Indicates if the command can be executed or not
-            /// </summary>
-            /// <param name="parameter">Command parameter</param>
-            /// <returns>True, if the command can be executed, false otherwise</returns>
             public bool CanExecute(object parameter)
             {
                 return true;
             }
-            /// <summary>
-            /// Implements the logic of the creation of a new project
-            /// </summary>
-            /// <param name="parameter">The main window</param>
+
             public void Execute(object parameter)
             {
                 CommonOpenFileDialog dialog = new CommonOpenFileDialog
@@ -109,7 +97,7 @@ namespace TextHub
                 };
                 if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
                 {
-                    MessageBox.Show("Папка не была выбрана", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
                     return;
                 }
                 OpeningDialog openingDialog = new OpeningDialog(dialog.FileName, true)
@@ -135,7 +123,7 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -148,6 +136,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -160,9 +149,10 @@ namespace TextHub
             /// Initialises a new instance of OpenDocumentCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal OpenDocumentCommand(TextHubViewModel viewModel)
+            internal OpenDocumentCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -192,7 +182,8 @@ namespace TextHub
                 dialog.Title = "Выберите документ, который хотите открыть в качестве проекта";
                 if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
                 {
-                    MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
+                    //MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
                 // Dialog to confirm the choice and settings
@@ -224,7 +215,8 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
+                        // MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -237,6 +229,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -249,9 +242,10 @@ namespace TextHub
             /// Initialises a new instance of OpenProjectCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal OpenProjectCommand(TextHubViewModel viewModel)
+            internal OpenProjectCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -280,7 +274,8 @@ namespace TextHub
                 };
                 if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
                 {
-                    MessageBox.Show("Проект не был выбран", "Проект не открыт", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Проект не был выбран", "Проект не открыт", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Проект не был выбран", "Проект не открыт");
                     return;
                 }
                 OpeningDialog openingDialog = new OpeningDialog(dialog.FileName)
@@ -312,7 +307,7 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -372,6 +367,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             public event EventHandler CanExecuteChanged
             {
@@ -383,9 +379,10 @@ namespace TextHub
             /// Initialises a new instance of SaveNewVersionCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal SaveNewVersionCommand(TextHubViewModel viewModel)
+            internal SaveNewVersionCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -425,7 +422,7 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }
@@ -439,6 +436,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -451,9 +449,10 @@ namespace TextHub
             /// Initialises a new instance of MakeNewSubprojectCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal MakeNewSubprojectCommand(TextHubViewModel viewModel)
+            internal MakeNewSubprojectCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -490,7 +489,8 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }
@@ -753,6 +753,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -765,9 +766,10 @@ namespace TextHub
             /// Initialises a new instance of CompareToPreviousCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal CompareToPreviousCommand(TextHubViewModel viewModel)
+            internal CompareToPreviousCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -792,7 +794,8 @@ namespace TextHub
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) == 0)
                 {
-                    MessageBox.Show("Это самая ранняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Это самая ранняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Это самая ранняя версия", "Сравнение невозможно");
                 }
                 else
                 {
@@ -830,7 +833,8 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -843,6 +847,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -855,9 +860,10 @@ namespace TextHub
             /// Initialises a new instance of CompareToChosenVersionCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal CompareToChosenVersionCommand(TextHubViewModel viewModel)
+            internal CompareToChosenVersionCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -879,7 +885,8 @@ namespace TextHub
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.Count < 2)
                 {
-                    MessageBox.Show("Это последняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Это последняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Это самая ранняя версия", "Сравнение невозможно");
                 }
                 else
                 {
@@ -922,7 +929,8 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }

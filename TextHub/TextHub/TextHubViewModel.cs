@@ -15,6 +15,8 @@ namespace TextHub
         // Static values of width of documents and versions panels
         private const double sideBarsOpenedWidth = 250;
         private const double sideBarsClosedWidth = 45;
+
+        IMessageService messageService = new MessageService();
         /// <summary>
         /// The list of projects currently opened in the app
         /// </summary>
@@ -66,19 +68,19 @@ namespace TextHub
         /// </summary>
         private void InitialiseCommands()
         {
-            NewDocumentCommand = new TextHubCommands.NewDocumentCommand(this);
-            OpenProjectCommand = new TextHubCommands.OpenProjectCommand(this);
-            OpenDocumentCommand = new TextHubCommands.OpenDocumentCommand(this);
+            NewDocumentCommand = new TextHubCommands.NewDocumentCommand(this, messageService);
+            OpenProjectCommand = new TextHubCommands.OpenProjectCommand(this, messageService);
+            OpenDocumentCommand = new TextHubCommands.OpenDocumentCommand(this, messageService);
             SaveCommand = new TextHubCommands.SaveCommand(this);
-            SaveNewVersionCommand = new TextHubCommands.SaveNewVersionCommand(this);
-            MakeNewSubprojectCommand = new TextHubCommands.MakeNewSubprojectCommand(this);
+            SaveNewVersionCommand = new TextHubCommands.SaveNewVersionCommand(this, messageService);
+            MakeNewSubprojectCommand = new TextHubCommands.MakeNewSubprojectCommand(this, messageService);
             HighlightTextCommand = new TextHubCommands.HighlightTextCommand(this);
             ColorTextCommand = new TextHubCommands.ColorTextCommand(this);
             ChangeFontCommand = new TextHubCommands.ChangeFontCommand(this);
             InsertImageCommand = new TextHubCommands.InsertImageCommand();
             PasteImageCommand = new TextHubCommands.PasteImageCommand();
-            CompareToPreviousCommand = new TextHubCommands.CompareToPreviousCommand(this);
-            CompareToChosenVersionCommand = new TextHubCommands.CompareToChosenVersionCommand(this);
+            CompareToPreviousCommand = new TextHubCommands.CompareToPreviousCommand(this, messageService);
+            CompareToChosenVersionCommand = new TextHubCommands.CompareToChosenVersionCommand(this, messageService);
             CloseComparisonCommand = new TextHubCommands.CloseComparisonCommand(this);
         }
 
