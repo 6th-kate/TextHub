@@ -70,9 +70,9 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="DocumentsMenu" Width="{Binding Path=DocumentsMenuWidth}"/>
+            <ColumnDefinition x:Name="DocumentsMenu" Width="{Binding Path=DocumentsMenuHelper.DocumentsMenuWidth}"/>
             <ColumnDefinition MinWidth="300"/>
-            <ColumnDefinition x:Name="VersionsMenu" Width="{Binding Path=VersionsMenuWidth}"/>
+            <ColumnDefinition x:Name="VersionsMenu" Width="{Binding Path=VersionsMenuHelper.VersionsMenuWidth}"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="150"/>
@@ -84,8 +84,8 @@
                     VerticalAlignment="Top" HorizontalAlignment="Left"
                     Style="{StaticResource darkerAreas}"
                     BorderThickness="0" 
-                    Visibility="{Binding Path=DocumentsMenuCloseButtonVisibility}" 
-                    Command="{Binding CloseDocumentMenuCommand}"
+                    Visibility="{Binding Path=DocumentsMenuHelper.DocumentsMenuCloseButtonVisibility}" 
+                    Command="{Binding DocumentsMenuHelper.CloseDocumentMenuCommand}"
                     ToolTip="Свернуть панель документов">
                 <Image Source="Resources/CloseImage.png"/>
             </Button>
@@ -94,8 +94,8 @@
                     VerticalAlignment="Top" HorizontalAlignment="Right"
                     Style="{StaticResource darkerAreas}" 
                     BorderThickness="0" 
-                    Visibility="{Binding Path=DocumentsMenuOpenButtonVisibility}" 
-                    Command="{Binding OpenDocumentMenuCommand}"
+                    Visibility="{Binding Path=DocumentsMenuHelper.DocumentsMenuOpenButtonVisibility}" 
+                    Command="{Binding DocumentsMenuHelper.OpenDocumentMenuCommand}"
                     ToolTip="Развернуть панель документов">
                 <Image Source="Resources/MenuImage.png"/>
             </Button>
@@ -107,7 +107,7 @@
                      ItemTemplate="{StaticResource documentsListTemplate}"
                      ItemContainerStyle="{StaticResource documentsItemStyle}"
                      BorderThickness="0"
-                     Visibility="{Binding DocumentsListVisibility}"
+                     Visibility="{Binding DocumentsMenuHelper.DocumentsListVisibility}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      SelectedItem="{Binding Path=SelectedProject, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
@@ -139,7 +139,7 @@
                     </Setter>
                 </Style>
             </TabControl.Resources>
-            <TabItem Header="Файл" Visibility="{Binding Path=FileTabVisibility}">
+            <TabItem Header="Файл" Visibility="{Binding Path=FileTabHelper.FileTabVisibility}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -161,7 +161,7 @@
                         <Button Grid.Column="0" Grid.Row="0"
                                 Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Новый проект"
-                                Command="{Binding NewDocumentCommand}"
+                                Command="{Binding FileTabHelper.NewDocumentCommand}"
                                 CommandParameter="{Binding ElementName=MainTextHubWindow}"
                                 Margin="3,3,3,3">
                             <Image Source="Resources/createProjectImage.png"/>
@@ -170,7 +170,7 @@
                                 Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Открыть документ" Grid.ColumnSpan="3"
                                 Margin="0,3,3,3"
-                                Command="{Binding OpenDocumentCommand}"
+                                Command="{Binding FileTabHelper.OpenDocumentCommand}"
                                 CommandParameter="{Binding ElementName=MainTextHubWindow}"
                                 HorizontalAlignment="Right" Width="54">
                             <Image Source="Resources/openProjectImage.png"/>
@@ -179,16 +179,16 @@
                                 Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Открыть проект" Grid.ColumnSpan="3"
                                 Margin="3,3,3,3"
-                                Command="{Binding OpenProjectCommand}"
+                                Command="{Binding FileTabHelper.OpenProjectCommand}"
                                 CommandParameter="{Binding ElementName=MainTextHubWindow}">
                             <Image Source="Resources/openImage.png"/>
                         </Button>
                         <Button Grid.Column="0" Grid.Row="1"
                                 Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Сохранить"
-                                Visibility="{Binding Path=SaveButtonVisibility}"
+                                Visibility="{Binding Path=FileTabHelper.SaveButtonVisibility}"
                                 Margin="3,0,3,3" Height="55" VerticalAlignment="Bottom"
-                                Command="{Binding SaveCommand}">
+                                Command="{Binding FileTabHelper.SaveCommand}">
                             <Image Source="Resources/saveImage.png"/>
                         </Button>
                     </Grid>
@@ -199,15 +199,15 @@
                         </Grid.RowDefinitions>
                         <Button Grid.Row="0" Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Сохранить как новую версию"
-                                Visibility="{Binding Path=SaveAsNewVersionButtonVisibility}"
-                                Command="{Binding SaveNewVersionCommand}"
+                                Visibility="{Binding Path=FileTabHelper.SaveAsNewVersionButtonVisibility}"
+                                Command="{Binding FileTabHelper.SaveNewVersionCommand}"
                                 CommandParameter="{Binding ElementName=MainTextHubWindow}">
                             <Image Source="Resources/newBookmarkImage.png"/>
                         </Button>
                         <Button Grid.Row="1" Style="{StaticResource tabButtonStyle}"
                                 ToolTip="Создать подпроект"
-                                Visibility="{Binding Path=MakeNewSubprojectButtonVisibility}"
-                                Command="{Binding MakeNewSubprojectCommand}"
+                                Visibility="{Binding Path=FileTabHelper.MakeNewSubprojectButtonVisibility}"
+                                Command="{Binding FileTabHelper.MakeNewSubprojectCommand}"
                                 CommandParameter="{Binding ElementName=MainTextHubWindow}"
                                 HorizontalAlignment="Left" Margin="3,3,0,3" Width="54">
                             <Image Source="Resources/addSubversion.png"/>
@@ -217,7 +217,7 @@
             </TabItem>
             <TabItem Header="Формат" Height="20"
                      VerticalAlignment="Top"
-                     Visibility="{Binding Path=EditingTabVisibility}">
+                     Visibility="{Binding Path=EditingTabHelper.EditingTabVisibility}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition MinWidth="125"/>
@@ -249,7 +249,7 @@
                             <Button Grid.Column="0"
                                     Style="{StaticResource formatTabButtonStyle}"
                                     ToolTip="Изменить шрифт"
-                                    Command="{Binding ChangeFontCommand}"
+                                    Command="{Binding EditingTabHelper.ChangeFontCommand}"
                                     CommandParameter="{Binding ElementName=MainRTB}">
                                 <Image Source="Resources/fontsImage.png"/>
                             </Button>
@@ -304,14 +304,14 @@
                             <Button Grid.Column="0"
                                     Style="{StaticResource  formatTabButtonStyle}"
                                     ToolTip="Установить цвет"
-                                    Command="{Binding ColorTextCommand}"
+                                    Command="{Binding EditingTabHelper.ColorTextCommand}"
                                     CommandParameter="{Binding ElementName=MainRTB}">
                                 <Image Source="Resources/colorTextImage.png"/>
                             </Button>
                             <Button Grid.Column="1"
                                     Style="{StaticResource formatTabButtonStyle}"
                                     ToolTip="Выделить"
-                                    Command="{Binding HighlightTextCommand}"
+                                    Command="{Binding EditingTabHelper.HighlightTextCommand}"
                                     CommandParameter="{Binding ElementName=MainRTB}">
                                 <Image Source="Resources/hightlightTextImage.png" Height="30"/>
                             </Button>
@@ -374,13 +374,13 @@
                         <StackPanel Orientation="Vertical">
                             <Button Style="{StaticResource formatTabButtonStyle}"
                                     ToolTip="Вставить изображение из буфера обмена"
-                                    Command="{Binding PasteImageCommand}"
+                                    Command="{Binding EditingTabHelper.PasteImageCommand}"
                                     CommandParameter="{Binding ElementName=MainRTB}">
                                 <Image Source="Resources/pasteImage.png" Height="30"/>
                             </Button>
                             <Button Style="{StaticResource formatTabButtonStyle}"
                                     ToolTip="Вставить изображение из памяти"
-                                    Command="{Binding InsertImageCommand}"
+                                    Command="{Binding EditingTabHelper.InsertImageCommand}"
                                     CommandParameter="{Binding ElementName=MainRTB}">
                                 <Image Source="Resources/uploadImage.png" Height="30"/>
                             </Button>
@@ -405,11 +405,11 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Сравнение"
-                     Visibility="{Binding Path=ComparisonTabVisibility}" HorizontalAlignment="Right" Width="81">
+                     Visibility="{Binding Path=ComparisonTabHelper.ComparisonTabVisibility}" HorizontalAlignment="Right" Width="81">
                 <StackPanel Orientation="Horizontal" Grid.Column="0">
                     <Button Style="{StaticResource tabButtonStyle}"
-                            Visibility="{Binding CompareToPreceedingVersionButtonVisibility}"
-                            Command="{Binding CompareToPreviousCommand}">
+                            Visibility="{Binding ComparisonTabHelper.CompareToPreceedingVersionButtonVisibility}"
+                            Command="{Binding ComparisonTabHelper.CompareToPreviousCommand}">
                         <StackPanel Orientation="Vertical" MaxWidth="80">
                             <Image Source="Resources/compareToLastImage.png" Height="60"/>
                             <TextBlock Margin="3" HorizontalAlignment="Center"
@@ -417,8 +417,8 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource tabButtonStyle}"
-                            Visibility="{Binding ChooseVersionToCompareButtonVisibility}"
-                            Command="{Binding CompareToChosenVersionCommand}"
+                            Visibility="{Binding ComparisonTabHelper.ChooseVersionToCompareButtonVisibility}"
+                            Command="{Binding ComparisonTabHelper.CompareToChosenVersionCommand}"
                             CommandParameter="{Binding ElementName=MainTextHubWindow}">
                         <StackPanel Orientation="Vertical" MaxWidth="70">
                             <Image Source="Resources/compareTwoVersionsImage.png" Height="60"/>
@@ -427,9 +427,9 @@
                         </StackPanel>
                     </Button>
                     <Button Style="{StaticResource tabButtonStyle}"
-                            Visibility="{Binding Path=CloseComparisonButtonVisibility}"
+                            Visibility="{Binding Path=ComparisonTabHelper.CloseComparisonButtonVisibility}"
                             MaxWidth="70"
-                            Command="{Binding CloseComparisonCommand}">
+                            Command="{Binding ComparisonTabHelper.CloseComparisonCommand}">
                         <StackPanel Orientation="Vertical">
                             <Image Source="Resources/CloseImage.png" Height="60"/>
                             <TextBlock HorizontalAlignment="Center" 
@@ -445,8 +445,8 @@
                     VerticalAlignment="Top" HorizontalAlignment="Right" 
                     Style="{StaticResource darkerAreas}"
                     BorderThickness="0"
-                    Visibility="{Binding Path=VersionsMenuCloseButtonVisibility}"
-                    Command="{Binding Path=CloseVersionsMenuCommand}"
+                    Visibility="{Binding Path=VersionsMenuHelper.VersionsMenuCloseButtonVisibility}"
+                    Command="{Binding Path=VersionsMenuHelper.CloseVersionsMenuCommand}"
                     ToolTip="Свернуть панель версий">
                 <Image Source="Resources/CloseImage.png"/>
             </Button>
@@ -454,24 +454,24 @@
                     VerticalAlignment="Top" HorizontalAlignment="Left"
                     Style="{StaticResource darkerAreas}"
                     BorderThickness="0"
-                    Visibility="{Binding Path=VersionsMenuOpenButtonVisibility}"
-                    Command="{Binding Path=OpenVersionsMenuCommand}"
+                    Visibility="{Binding Path=VersionsMenuHelper.VersionsMenuOpenButtonVisibility}"
+                    Command="{Binding Path=VersionsMenuHelper.OpenVersionsMenuCommand}"
                     ToolTip="Развернуть панель версий">
                 <Image Source="Resources/MenuImage.png"/>
             </Button>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1">
             <RichTextBox x:Name="MainRTB"
-                         Visibility="{Binding Path=MainRTBVisibility}"
-                         local:RichTextBoxHelper.DocumentRTF="{Binding CurrentText}"
-                         IsReadOnly="{Binding Path=EditingBlocked}"
+                         Visibility="{Binding Path=MainRTBHelper.MainRTBVisibility}"
+                         local:RichTextBoxHelper.DocumentRTF="{Binding MainRTBHelper.CurrentText}"
+                         IsReadOnly="{Binding Path=MainRTBHelper.EditingBlocked}"
                          AcceptsTab="True"/>
             <diffplex:DiffViewer x:Name="DiffView"
-                                 Visibility="{Binding Path=DiffViewVisibility}"
-                                 OldText="{Binding OldText}"
-                                 NewText="{Binding NewText}"
-                                 NewTextHeader="{Binding NewTextHeader}"
-                                 OldTextHeader="{Binding OldTextHeader}"/>
+                                 Visibility="{Binding Path=MainRTBHelper.DiffViewVisibility}"
+                                 OldText="{Binding MainRTBHelper.OldText}"
+                                 NewText="{Binding MainRTBHelper.NewText}"
+                                 NewTextHeader="{Binding MainRTBHelper.NewTextHeader}"
+                                 OldTextHeader="{Binding MainRTBHelper.OldTextHeader}"/>
         </Grid>
 
         <Grid Style="{StaticResource lighterAreas}"
@@ -481,7 +481,7 @@
                     ContentTemplate="{StaticResource documentVersionsListTemplate}"
                     ItemsSource="{Binding Path=TextHubProjects}"
                     SelectedItem="{Binding Path=SelectedProject}"
-                    Visibility="{Binding VersionsListVisibility}">
+                    Visibility="{Binding VersionsMenuHelper.VersionsListVisibility}">
                 <TabControl.ItemContainerStyle>
                     <Style TargetType="{x:Type TabItem}">
                         <Setter Property="Visibility" Value="Collapsed"/>
