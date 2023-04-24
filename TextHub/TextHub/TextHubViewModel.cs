@@ -74,10 +74,10 @@ namespace TextHub
             SaveCommand = new TextHubCommands.SaveCommand(this);
             SaveNewVersionCommand = new TextHubCommands.SaveNewVersionCommand(this, messageService);
             MakeNewSubprojectCommand = new TextHubCommands.MakeNewSubprojectCommand(this, messageService);
-            HighlightTextCommand = new TextHubCommands.HighlightTextCommand(this);
-            ColorTextCommand = new TextHubCommands.ColorTextCommand(this);
-            ChangeFontCommand = new TextHubCommands.ChangeFontCommand(this);
-            InsertImageCommand = new TextHubCommands.InsertImageCommand();
+            HighlightTextCommand = new TextHubCommands.HighlightTextCommand(this, messageService);
+            ColorTextCommand = new TextHubCommands.ColorTextCommand(this, messageService);
+            ChangeFontCommand = new TextHubCommands.ChangeFontCommand(this, messageService);
+            InsertImageCommand = new TextHubCommands.InsertImageCommand(messageService);
             PasteImageCommand = new TextHubCommands.PasteImageCommand();
             CompareToPreviousCommand = new TextHubCommands.CompareToPreviousCommand(this, messageService);
             CompareToChosenVersionCommand = new TextHubCommands.CompareToChosenVersionCommand(this, messageService);

@@ -88,19 +88,13 @@ namespace TextHub
 
             public void Execute(object parameter)
             {
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
-                {
-                    IsFolderPicker = true,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = true,
-                    Title = "Выберите папку, в которой хотите создать проект"
-                };
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
+                string selectedFolder = messageService.OpenFolder("Выберите папку, в которой хотите создать проект", true, false);
+                if (selectedFolder == null)
                 {
                     messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName, true)
+                OpeningDialog openingDialog = new OpeningDialog(selectedFolder, true)
                 {
                     Owner = (System.Windows.Window)parameter
                 };
@@ -172,22 +166,15 @@ namespace TextHub
             public void Execute(object parameter)
             {
                 // Dialog to choose file
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
+                string selectedFile = messageService.OpenFile("Rich text format files (*.rtf)|*.rtf", "Выберите документ, который хотите открыть в качестве проекта", false, false);
+                if (selectedFile == null)
                 {
-                    IsFolderPicker = false,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = false
-                };
-                dialog.Filters.Add(new CommonFileDialogFilter("Rich text format files", "*.rtf"));
-                dialog.Title = "Выберите документ, который хотите открыть в качестве проекта";
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
+                    messageService.ShowInformation("Документ не был выбран", "Проект не создан");
                     //MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
                 // Dialog to confirm the choice and settings
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName)
+                OpeningDialog openingDialog = new OpeningDialog(selectedFile)
                 {
                     Owner = (System.Windows.Window)parameter
                 };
@@ -264,21 +251,14 @@ namespace TextHub
             /// <param name="parameter">The main window</param>
             public void Execute(object parameter)
             {
-                // The dialog to choose a folder
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
+
+                string selectedFolder = messageService.OpenFolder("Выберите проект, который хотите открыть", false, false);
+                if (selectedFolder == null)
                 {
-                    IsFolderPicker = true,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = false,
-                    Title = "Выберите проект, который хотите открыть"
-                };
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    //MessageBox.Show("Проект не был выбран", "Проект не открыт", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     messageService.ShowInformation("Проект не был выбран", "Проект не открыт");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName)
+                OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
                 {
                     Owner = (System.Windows.Window)parameter
                 };
@@ -504,6 +484,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -516,9 +497,10 @@ namespace TextHub
             /// Initialises a new instance of HighlightTextCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal HighlightTextCommand(TextHubViewModel viewModel)
+            internal HighlightTextCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -539,12 +521,18 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    ColorDialog dialog = new ColorDialog();
+
+                    if (messageService.ShowColorDialog(out Color selectedColor) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.BackgroundProperty,
+                            new SolidColorBrush(selectedColor));
+                    }
+                    /*ColorDialog dialog = new ColorDialog();
                     if (dialog.ShowDialog() == DialogResult.OK && parameter is System.Windows.Controls.RichTextBox box)
                     {
                         box.Selection.ApplyPropertyValue(TextElement.BackgroundProperty,
                            new SolidColorBrush(Color.FromArgb(dialog.Color.A, dialog.Color.R, dialog.Color.G, dialog.Color.B)));
-                    }
+                    }*/
                 }
             }
         }
@@ -556,6 +544,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -568,9 +557,10 @@ namespace TextHub
             /// Initialises a new instance of ColorTextCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal ColorTextCommand(TextHubViewModel viewModel)
+            internal ColorTextCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -590,12 +580,18 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    ColorDialog dialog = new ColorDialog();
+
+                    if (messageService.ShowColorDialog(out Color selectedColor) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.ForegroundProperty,
+                            new SolidColorBrush(selectedColor));
+                    }
+                    /*ColorDialog dialog = new ColorDialog();
                     if (dialog.ShowDialog() == DialogResult.OK && parameter is System.Windows.Controls.RichTextBox box)
                     {
                         box.Selection.ApplyPropertyValue(TextElement.ForegroundProperty,
                             new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(dialog.Color.A, dialog.Color.R, dialog.Color.G, dialog.Color.B)));
-                    }
+                    }*/
                 }
             }
         }
@@ -607,6 +603,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -619,9 +616,10 @@ namespace TextHub
             /// Initialises a new instance of ChangeFontCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal ChangeFontCommand(TextHubViewModel viewModel)
+            internal ChangeFontCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -641,7 +639,21 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    FontDialog dialog = new FontDialog
+                    if (messageService.ShowFontDialog(out string fontFamily, out double fontSize, out bool isBold, out bool isItalic) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily(fontFamily));
+                        box.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
+                        if (isBold)
+                        {
+                            box.Selection.ApplyPropertyValue(TextElement.FontWeightProperty, System.Windows.FontWeights.Bold);
+                        }
+                        if (isItalic)
+                        {
+                            box.Selection.ApplyPropertyValue(TextElement.FontStyleProperty, System.Windows.FontStyles.Italic);
+                        }
+                    }
+
+                    /*FontDialog dialog = new FontDialog
                     {
                         ShowColor = false,
                         ShowEffects = false
@@ -658,7 +670,7 @@ namespace TextHub
                         {
                             box.Selection.ApplyPropertyValue(TextElement.FontStyleProperty, System.Windows.FontStyles.Italic);
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -668,11 +680,18 @@ namespace TextHub
         /// </summary>
         public class InsertImageCommand : ICommand
         {
+            private readonly IMessageService messageService;
+
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
             {
                 add { CommandManager.RequerySuggested += value; }
                 remove { CommandManager.RequerySuggested -= value; }
+            }
+
+            internal InsertImageCommand(IMessageService messageService)
+            {
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -692,7 +711,13 @@ namespace TextHub
             {
                 if (parameter is System.Windows.Controls.RichTextBox box)
                 {
-                    CommonOpenFileDialog dialog = new CommonOpenFileDialog
+                    string selectedFile = messageService.OpenFile("Image files|*.jpeg,*.jpg,*.png,*.bmp", "Выберите изображение", true, false);
+                    if (selectedFile != null)
+                    {
+                        Clipboard.SetDataObject(new System.Drawing.Bitmap(selectedFile));
+                        box.Paste();
+                    }
+                    /*CommonOpenFileDialog dialog = new CommonOpenFileDialog
                     {
                         IsFolderPicker = false,
                         Multiselect = false
@@ -702,7 +727,7 @@ namespace TextHub
                     {
                         Clipboard.SetDataObject(new System.Drawing.Bitmap(dialog.FileName));
                         box.Paste();
-                    }
+                    }*/
                 }
             }
         }
