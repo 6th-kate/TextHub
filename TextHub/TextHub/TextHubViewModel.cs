@@ -137,12 +137,25 @@ namespace TextHub
                             FileTabHelper.SaveAsNewVersionButtonVisibility = System.Windows.Visibility.Collapsed;
                         }
                         MainRTBHelper.DiffViewVisibility = System.Windows.Visibility.Collapsed;
-                        MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Visible;
+
+                        if (value.Project.GetType() != typeof(TextHubProjectRTF))
+                        {
+                            EditingTabHelper.EditingTabVisibility = System.Windows.Visibility.Collapsed;
+                            MainRTBHelper.MainTBVisibility = System.Windows.Visibility.Visible;
+                            MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                        }
+                        else
+                        {
+                            MainRTBHelper.MainTBVisibility = System.Windows.Visibility.Collapsed;
+                            MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Visible;
+                        }
+
                         ComparisonTabHelper.CloseComparisonButtonVisibility = System.Windows.Visibility.Collapsed;
                         ComparisonTabHelper.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Visible;
                         ComparisonTabHelper.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Visible;
                         FileTabHelper.MakeNewSubprojectButtonVisibility = System.Windows.Visibility.Visible;
                         ComparisonTabHelper.ComparisonTabVisibility = System.Windows.Visibility.Visible;
+
                     }
                     catch (Exception ex)
                     {
@@ -155,6 +168,7 @@ namespace TextHub
                 {
                     MainRTBHelper.DiffViewVisibility = System.Windows.Visibility.Collapsed;
                     MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                    MainRTBHelper.MainTBVisibility = System.Windows.Visibility.Collapsed;
                     ComparisonTabHelper.ComparisonTabVisibility = System.Windows.Visibility.Collapsed;
                     EditingTabHelper.EditingTabVisibility = System.Windows.Visibility.Collapsed;
                     FileTabHelper.SaveButtonVisibility = System.Windows.Visibility.Collapsed;

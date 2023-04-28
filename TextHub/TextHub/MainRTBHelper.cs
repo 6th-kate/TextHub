@@ -9,6 +9,7 @@ namespace TextHub
         {
             MainRTBVisibility = System.Windows.Visibility.Collapsed;
             DiffViewVisibility = System.Windows.Visibility.Collapsed;
+            MainTBVisibility = System.Windows.Visibility.Collapsed;
         }
 
         private string newTextHeader;
@@ -110,6 +111,20 @@ namespace TextHub
             }
         }
 
+        System.Windows.Visibility mainTBVisibility;
+        /// <summary>
+        /// The visibility of the main RichTextBox
+        /// </summary>
+        public System.Windows.Visibility MainTBVisibility
+        {
+            get { return mainTBVisibility; }
+            set
+            {
+                mainTBVisibility = value;
+                OnPropertyChanged("MainTBVisibility");
+            }
+        }
+
         System.Windows.Visibility diffViewVisibility;
         /// <summary>
         /// The visibility of the main difference viewer
@@ -134,6 +149,7 @@ namespace TextHub
             this.EditingBlocked = other.EditingBlocked;
             this.MainRTBVisibility = other.MainRTBVisibility;
             this.DiffViewVisibility = other.DiffViewVisibility;
+            this.MainTBVisibility = other.MainTBVisibility;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

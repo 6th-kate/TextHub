@@ -466,6 +466,11 @@
                          local:RichTextBoxHelper.DocumentRTF="{Binding MainRTBHelper.CurrentText}"
                          IsReadOnly="{Binding Path=MainRTBHelper.EditingBlocked}"
                          AcceptsTab="True"/>
+            <TextBox x:Name="MainTB"
+                     Text="{Binding MainRTBHelper.CurrentText, Mode=TwoWay}"
+                     Visibility="{Binding Path=MainRTBHelper.MainTBVisibility}"
+                     IsReadOnly="{Binding Path=MainRTBHelper.EditingBlocked}"
+                     />
             <diffplex:DiffViewer x:Name="DiffView"
                                  Visibility="{Binding Path=MainRTBHelper.DiffViewVisibility}"
                                  OldText="{Binding MainRTBHelper.OldText}"

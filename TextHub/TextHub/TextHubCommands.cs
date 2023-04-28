@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 namespace TextHub
 {
@@ -121,7 +122,21 @@ namespace TextHub
                 {
                     try
                     {
-                        TextHubProject project = TextHubProject.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        TextHubProject project;
+
+                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedFormat.Equals("RTF"))
+                        {
+                            project = TextHubProjectRTF.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        }
+                        else if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedFormat.Equals("MD"))
+                        {
+                            project = TextHubProjectMD.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        }
+                        else
+                        {
+                            project = TextHubProjectXML.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        }
+
                         if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
@@ -176,7 +191,7 @@ namespace TextHub
             }
 
             /// <summary>
-            /// Implements the logic of the opening of an .rtf document
+            /// Implements the logic of the opening of a document
             /// </summary>
             /// <param name="parameter">The main window</param>
             public void Execute(object parameter)
@@ -189,6 +204,8 @@ namespace TextHub
                     AllowNonFileSystemItems = false
                 };
                 dialog.Filters.Add(new CommonFileDialogFilter("Rich text format files", "*.rtf"));
+                dialog.Filters.Add(new CommonFileDialogFilter("Markdown files", "*.md"));
+                dialog.Filters.Add(new CommonFileDialogFilter("XML files", "*.xml"));
                 dialog.Title = "Выберите документ, который хотите открыть в качестве проекта";
                 if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
                 {
@@ -206,7 +223,25 @@ namespace TextHub
                     try
                     {
                         // Opens the document
-                        TextHubProject project = TextHubProject.ParseFile(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        TextHubProject project;
+                        string filePath = ((OpeningDialogViewModel)openingDialog.DataContext).FullPath;
+                        if (filePath.EndsWith(".rtf"))
+                        {
+                            project = TextHubProjectRTF.ParseFile(filePath);
+                        }
+                        else if (filePath.EndsWith(".md"))
+                        {
+                            project = TextHubProjectMD.ParseFile(filePath);
+                        }
+                        else if (filePath.EndsWith(".xml"))
+                        {
+                            project = TextHubProjectXML.ParseFile(filePath);
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Файл должен быть в формате .rtf, .md или .xml");
+                        }
+
                         if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
@@ -294,7 +329,26 @@ namespace TextHub
                     try
                     {
                         // Opens the project
-                        TextHubProject project = TextHubProject.ParseProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        string folderPath = ((OpeningDialogViewModel)openingDialog.DataContext).FullPath;
+                        string format = TextHubProject.GetProjectFormat(folderPath);
+                        TextHubProject project;
+                        if (format.Equals("RTF"))
+                        {
+                            project = TextHubProjectRTF.ParseProject(folderPath);
+                        }
+                        else if (format.Equals("MD"))
+                        {
+                            project = TextHubProjectMD.ParseProject(folderPath);
+                        }
+                        else if (format.Equals("XML"))
+                        {
+                            project = TextHubProjectXML.ParseProject(folderPath);
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Файл должен быть в формате .rtf, .md или .xml");
+                        }
+
                         if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
@@ -802,7 +856,14 @@ namespace TextHub
                         TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
                         {
-                            newTextRange.Load(stream, DataFormats.Rtf);
+                            if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                            {
+                                newTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            else
+                            {
+                                newTextRange.Load(stream, DataFormats.Text);
+                            }
                         }
                         textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                         FlowDocument oldText = new FlowDocument();
@@ -810,7 +871,14 @@ namespace TextHub
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(
                             textHubViewModel.SelectedVersion.Project.Versions[textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) - 1]))))
                         {
-                            oldTextRange.Load(stream, DataFormats.Rtf);
+                            if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                            {
+                                oldTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            else
+                            {
+                                oldTextRange.Load(stream, DataFormats.Text);
+                            }
                         }
                         textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                         textHubViewModel.MainRTBHelper.OldText = oldTextRange.Text;
@@ -896,14 +964,28 @@ namespace TextHub
                             TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
                             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
                             {
-                                newTextRange.Load(stream, DataFormats.Rtf);
+                                if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                                {
+                                    newTextRange.Load(stream, DataFormats.Rtf);
+                                }
+                                else
+                                {
+                                    newTextRange.Load(stream, DataFormats.Text);
+                                }
                             }
                             textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                             FlowDocument oldText = new FlowDocument();
                             TextRange oldTextRange = new TextRange(oldText.ContentStart, oldText.ContentEnd);
                             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(((ChooseVersionViewModel)dialog.DataContext).SelectedVersion))))
                             {
-                                oldTextRange.Load(stream, DataFormats.Rtf);
+                                if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                                {
+                                    oldTextRange.Load(stream, DataFormats.Rtf);
+                                }
+                                else
+                                {
+                                    oldTextRange.Load(stream, DataFormats.Text);
+                                }
                             }
                             textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                             textHubViewModel.MainRTBHelper.OldText = oldTextRange.Text;

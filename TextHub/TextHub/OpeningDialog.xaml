@@ -20,6 +20,10 @@
                   SelectedItem="{Binding Path=SelectedOpenFileMode}"
                   ItemsSource="{Binding Path=OpenFIleModes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   Visibility="{Binding Path=FileModeChoiceVisibility}"/>
+        <ComboBox Grid.Row="1" Width="250" Height="20"
+                  SelectedItem="{Binding Path=SelectedFormat}"
+                  ItemsSource="{Binding Path=Formats, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  Visibility="{Binding Path=FormatChoiceVisibility}"/>
         <ComboBox Grid.Row="2" Width="250" Height="20"
                   SelectedItem="{Binding Path=SelectedOpenWindowMode}"
                   ItemsSource="{Binding Path=OpenWindowModes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
