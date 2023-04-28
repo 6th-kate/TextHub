@@ -94,17 +94,12 @@ namespace TextHub
                     messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(selectedFolder, true)
-                {
-                    Owner = (System.Windows.Window)parameter
-                };
-                openingDialog.ShowDialog();
-                if (((OpeningDialogViewModel)openingDialog.DataContext).DialogResult)
+                if (messageService.ShowOpeningDialog(selectedFolder, parameter, false))
                 {
                     try
                     {
-                        TextHubProject project = TextHubProject.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
+                        TextHubProject project = TextHubProject.MakeNewProject(messageService.OpeningDialogFullPath);
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
                             ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
@@ -173,23 +168,17 @@ namespace TextHub
                     //MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                // Dialog to confirm the choice and settings
-                OpeningDialog openingDialog = new OpeningDialog(selectedFile)
-                {
-                    Owner = (System.Windows.Window)parameter
-                };
-                openingDialog.ShowDialog();
-                if (((OpeningDialogViewModel)openingDialog.DataContext).DialogResult)
+                if (messageService.ShowOpeningDialog(selectedFile, parameter, true))
                 {
                     try
                     {
                         // Opens the document
-                        TextHubProject project = TextHubProject.ParseFile(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode == "Просмотр")
+                        TextHubProject project = TextHubProject.ParseFile(messageService.OpeningDialogFullPath);
+                        if (messageService.SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
                         }
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
                             ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
@@ -203,7 +192,6 @@ namespace TextHub
                     catch (Exception ex)
                     {
                         messageService.ShowError(ex.Message);
-                        // MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -258,7 +246,7 @@ namespace TextHub
                     messageService.ShowInformation("Проект не был выбран", "Проект не открыт");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
+                /*OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
                 {
                     Owner = (System.Windows.Window)parameter
                 };
@@ -275,6 +263,32 @@ namespace TextHub
                             project.Versions[project.Versions.Count - 1].Changeable = false;
                         }
                         if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
+                        {
+                            MainWindow newWindow = new MainWindow();
+                            ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
+                            newWindow.Show();
+                        }
+                        else
+                        {
+                            textHubViewModel.TextHubProjects.Add(project);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        messageService.ShowError(ex.Message);
+                    }
+                }*/
+                if (messageService.ShowOpeningDialog(selectedFolder, parameter, true))
+                {
+                    try
+                    {
+                        // Opens the project
+                        TextHubProject project = TextHubProject.ParseProject(messageService.OpeningDialogFullPath);
+                        if (messageService.SelectedOpenFileMode == "Просмотр")
+                        {
+                            project.Versions[project.Versions.Count - 1].Changeable = false;
+                        }
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
                             ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
@@ -384,7 +398,7 @@ namespace TextHub
                 if (textHubViewModel.SelectedVersion != null)
                 {
                     // A dialog to choose the name for the version
-                    ChooseNameDialog dialog = new ChooseNameDialog
+                    /*ChooseNameDialog dialog = new ChooseNameDialog
                     {
                         Owner = (MainWindow)parameter
                     };
@@ -399,6 +413,22 @@ namespace TextHub
                                 textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
                             }
                             textHubViewModel.SelectedVersion.Project.SaveNewVersion(((ChooseNameViewModel)dialog.DataContext).NewName);
+                        }
+                        catch (Exception ex)
+                        {
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    // Creates the version
+                    if (messageService.ShowNewNameDialog(parameter))
+                    {
+                        try
+                        {
+                            if (textHubViewModel.SelectedVersion.Changeable)
+                            {
+                                textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                            }
+                            textHubViewModel.SelectedVersion.Project.SaveNewVersion(messageService.NewName);
                         }
                         catch (Exception ex)
                         {
@@ -453,7 +483,7 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    // Dialog to choose a name for the subproject
+                    /*// Dialog to choose a name for the subproject
                     ChooseNameDialog dialog = new ChooseNameDialog
                     {
                         Owner = (MainWindow)parameter
@@ -466,6 +496,20 @@ namespace TextHub
                         {
                             textHubViewModel.TextHubProjects.Add(textHubViewModel.SelectedVersion.Project.MakeSubproject(textHubViewModel.SelectedVersion,
                                 ((ChooseNameViewModel)dialog.DataContext).NewName));
+                        }
+                        catch (Exception ex)
+                        {
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    if (messageService.ShowNewNameDialog(parameter))
+                    {
+                        // Creates the subproject
+                        try
+                        {
+                            textHubViewModel.TextHubProjects.Add(textHubViewModel.SelectedVersion.Project.MakeSubproject(textHubViewModel.SelectedVersion,
+                                messageService.NewName));
                         }
                         catch (Exception ex)
                         {
@@ -915,7 +959,7 @@ namespace TextHub
                 }
                 else
                 {
-                    ChooseVersionDialog dialog = new ChooseVersionDialog(textHubViewModel.SelectedVersion.Project.Versions)
+                    /*ChooseVersionDialog dialog = new ChooseVersionDialog(textHubViewModel.SelectedVersion.Project.Versions)
                     {
                         Owner = (MainWindow)parameter
                     };
@@ -941,6 +985,44 @@ namespace TextHub
                             textHubViewModel.OldText = oldTextRange.Text;
                             textHubViewModel.NewTextHeader = textHubViewModel.SelectedVersion.Title;
                             textHubViewModel.OldTextHeader = ((ChooseVersionViewModel)dialog.DataContext).SelectedVersion.Title;
+
+                            textHubViewModel.EditingTabVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.FileTabVisibility = System.Windows.Visibility.Collapsed;
+
+                            textHubViewModel.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.DiffViewVisibility = System.Windows.Visibility.Visible;
+
+                            textHubViewModel.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
+                            textHubViewModel.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
+                        }
+                        catch (Exception ex)
+                        {
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    if (messageService.ShowChooseVersionDialog(parameter, textHubViewModel.SelectedVersion.Project))
+                    {
+                        try
+                        {
+                            FlowDocument newText = new FlowDocument();
+                            TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
+                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
+                            {
+                                newTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            textHubViewModel.NewText = newTextRange.Text;
+                            FlowDocument oldText = new FlowDocument();
+                            TextRange oldTextRange = new TextRange(oldText.ContentStart, oldText.ContentEnd);
+                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(messageService.NewVersion))))
+                            {
+                                oldTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            textHubViewModel.NewText = newTextRange.Text;
+                            textHubViewModel.OldText = oldTextRange.Text;
+                            textHubViewModel.NewTextHeader = textHubViewModel.SelectedVersion.Title;
+                            textHubViewModel.OldTextHeader = messageService.NewVersion.Title;
 
                             textHubViewModel.EditingTabVisibility = System.Windows.Visibility.Collapsed;
                             textHubViewModel.FileTabVisibility = System.Windows.Visibility.Collapsed;

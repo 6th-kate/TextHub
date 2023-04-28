@@ -1,13 +1,12 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Collections.ObjectModel;
 using System.Windows.Forms;
 using System.Windows.Media;
 
 namespace TextHub
 {
-    public interface IMessageService
+    internal interface IMessageService
     {
         void ShowInformation(string message, string subMessage);
         void ShowWarning(string message);
@@ -16,10 +15,66 @@ namespace TextHub
         string OpenFile(string filter, string title, bool allowNonFileSystemItems, bool multiselect);
         bool ShowColorDialog(out Color selectedColor);
         bool ShowFontDialog(out string fontFamily, out double fontSize, out bool isBold, out bool isItalic);
+        bool ShowOpeningDialog(string selectedFolder, object parameter, bool isFile);
+        bool ShowNewNameDialog(object parameter);
+        bool ShowChooseVersionDialog(object parameter, TextHubProject project);
+        string OpeningDialogFullPath { get; }
+        string SelectedOpenWindowMode { get; }
+        string SelectedOpenFileMode { get; }
+        string NewName { get; }
+        TextHubVersion NewVersion { get; }
     }
 
-    public class MessageService : IMessageService
+    internal class MessageService : IMessageService
     {
+
+        private string _openingDialogFullPath;
+        private string _selectedOpenWindowMode;
+        private string _selectedOpenFileMode;
+        private string _newName;
+        private TextHubVersion _newVersion;
+
+        public string OpeningDialogFullPath => _openingDialogFullPath;
+        public string SelectedOpenWindowMode => _selectedOpenWindowMode;
+        public string SelectedOpenFileMode => _selectedOpenFileMode;
+        public string NewName => _newName;
+        TextHubVersion IMessageService.NewVersion => _newVersion;
+
+        public bool ShowOpeningDialog(string selectedFolder, object parameter, bool isFile)
+        {
+            OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
+            {
+                Owner = (System.Windows.Window)parameter
+            };
+            openingDialog.ShowDialog();
+            _openingDialogFullPath = ((OpeningDialogViewModel)openingDialog.DataContext).FullPath;
+            _selectedOpenWindowMode = ((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode;
+            if (isFile)
+            {
+                _selectedOpenFileMode = ((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode;
+            }
+            return ((OpeningDialogViewModel)openingDialog.DataContext).DialogResult;
+        }
+        public bool ShowNewNameDialog(object parameter)
+        {
+            ChooseNameDialog dialog = new ChooseNameDialog
+            {
+                Owner = (MainWindow)parameter
+            };
+            dialog.ShowDialog();
+            _newName = ((ChooseNameViewModel)dialog.DataContext).NewName;
+            return ((ChooseNameViewModel)dialog.DataContext).DialogResult;
+        }
+        bool IMessageService.ShowChooseVersionDialog(object parameter, TextHubProject project)
+        {
+            ChooseVersionDialog dialog = new ChooseVersionDialog(project.Versions)
+            {
+                Owner = (MainWindow)parameter
+            };
+            dialog.ShowDialog();
+            _newVersion = ((ChooseVersionViewModel)dialog.DataContext).SelectedVersion;
+            return ((ChooseNameViewModel)dialog.DataContext).DialogResult;
+        }
         public void ShowInformation(string message, string subMessage)
         {
             MessageBox.Show(message, subMessage, MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -85,6 +140,7 @@ namespace TextHub
                 return false;
             }
         }
+
         public bool ShowFontDialog(out string fontFamily, out double fontSize, out bool isBold, out bool isItalic)
         {
             FontDialog dialog = new FontDialog
