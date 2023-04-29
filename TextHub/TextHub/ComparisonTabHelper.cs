@@ -5,12 +5,12 @@ namespace TextHub
 {
     class ComparisonTabHelper : INotifyPropertyChanged
     {
-        public ComparisonTabHelper(TextHubViewModel viewModel)
+        public ComparisonTabHelper(TextHubViewModel viewModel, IMessageService messageService)
         {
             ComparisonTabVisibility = System.Windows.Visibility.Collapsed;
             CloseComparisonButtonVisibility = System.Windows.Visibility.Collapsed;
-            CompareToPreviousCommand = new TextHubCommands.CompareToPreviousCommand(viewModel);
-            CompareToChosenVersionCommand = new TextHubCommands.CompareToChosenVersionCommand(viewModel);
+            CompareToPreviousCommand = new TextHubCommands.CompareToPreviousCommand(viewModel, messageService);
+            CompareToChosenVersionCommand = new TextHubCommands.CompareToChosenVersionCommand(viewModel, messageService);
             CloseComparisonCommand = new TextHubCommands.CloseComparisonCommand(viewModel);
         }
 

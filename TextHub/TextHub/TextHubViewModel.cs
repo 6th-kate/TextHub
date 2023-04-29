@@ -42,9 +42,9 @@ namespace TextHub
         private void SetStartValues()
         {
             mainRTBHelper = new MainRTBHelper();
-            editingTabHelper = new EditingTabHelper(this);
-            comparisonTabHelper = new ComparisonTabHelper(this);
-            fileTabHelper = new FileTabHelper(this);
+            editingTabHelper = new EditingTabHelper(this, messageService);
+            comparisonTabHelper = new ComparisonTabHelper(this, messageService);
+            fileTabHelper = new FileTabHelper(this, messageService);
             documentsMenuHelper = new DocumentsMenuHelper(sideBarsOpenedWidth, sideBarsClosedWidth);
             versionsMenuHelper = new VersionsMenuHelper(sideBarsOpenedWidth, sideBarsClosedWidth);
 

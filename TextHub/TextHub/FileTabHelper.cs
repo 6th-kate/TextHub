@@ -6,18 +6,18 @@ namespace TextHub
     class FileTabHelper : INotifyPropertyChanged
     {
 
-        public FileTabHelper(TextHubViewModel viewModel)
+        public FileTabHelper(TextHubViewModel viewModel, IMessageService messageService)
         {
             FileTabVisibility = System.Windows.Visibility.Visible;
             SaveButtonVisibility = System.Windows.Visibility.Collapsed;
             SaveAsNewVersionButtonVisibility = System.Windows.Visibility.Collapsed;
             MakeNewSubprojectButtonVisibility = System.Windows.Visibility.Collapsed;
-            NewDocumentCommand = new TextHubCommands.NewDocumentCommand(viewModel);
-            OpenDocumentCommand = new TextHubCommands.OpenDocumentCommand(viewModel);
-            OpenProjectCommand = new TextHubCommands.OpenProjectCommand(viewModel);
+            NewDocumentCommand = new TextHubCommands.NewDocumentCommand(viewModel, messageService);
+            OpenDocumentCommand = new TextHubCommands.OpenDocumentCommand(viewModel, messageService);
+            OpenProjectCommand = new TextHubCommands.OpenProjectCommand(viewModel, messageService);
             SaveCommand = new TextHubCommands.SaveCommand(viewModel);
-            SaveNewVersionCommand = new TextHubCommands.SaveNewVersionCommand(viewModel);
-            MakeNewSubprojectCommand = new TextHubCommands.MakeNewSubprojectCommand(viewModel);
+            SaveNewVersionCommand = new TextHubCommands.SaveNewVersionCommand(viewModel, messageService);
+            MakeNewSubprojectCommand = new TextHubCommands.MakeNewSubprojectCommand(viewModel, messageService);
         }
 
         public TextHubCommands.NewDocumentCommand NewDocumentCommand { get; set; }

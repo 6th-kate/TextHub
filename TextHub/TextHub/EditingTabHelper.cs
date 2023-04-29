@@ -5,13 +5,13 @@ namespace TextHub
 {
     class EditingTabHelper : INotifyPropertyChanged
     {
-        public EditingTabHelper(TextHubViewModel viewModel)
+        public EditingTabHelper(TextHubViewModel viewModel, IMessageService messageService)
         {
-            ChangeFontCommand = new TextHubCommands.ChangeFontCommand(viewModel);
-            ColorTextCommand = new TextHubCommands.ColorTextCommand(viewModel);
-            HighlightTextCommand = new TextHubCommands.HighlightTextCommand(viewModel);
+            ChangeFontCommand = new TextHubCommands.ChangeFontCommand(viewModel, messageService);
+            ColorTextCommand = new TextHubCommands.ColorTextCommand(viewModel, messageService);
+            HighlightTextCommand = new TextHubCommands.HighlightTextCommand(viewModel, messageService);
             PasteImageCommand = new TextHubCommands.PasteImageCommand();
-            InsertImageCommand = new TextHubCommands.InsertImageCommand();
+            InsertImageCommand = new TextHubCommands.InsertImageCommand(messageService);
             editingTabVisibility = System.Windows.Visibility.Collapsed;
         }
 
