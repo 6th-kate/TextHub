@@ -29,9 +29,19 @@ namespace TextHub
         /// </summary>
         public ObservableCollection<string> OpenWindowModes { get; set; }
         /// <summary>
+        /// List of formats in which the project can be created: "RTF", "MD" or "XML"
+        /// </summary>
+        public ObservableCollection<string> Formats { get; set; }
+        /// <summary>
         /// The mode of opening the file user selects in ComboBox
         /// </summary>
         public string SelectedOpenFileMode { get; set; }
+
+        /// <summary>
+        /// The mode of opening the file user selects in ComboBox
+        /// </summary>
+        public string SelectedFormat { get; set; }
+
         /// <summary>
         /// The mode of opening the window user selects in ComboBox
         /// </summary>
@@ -50,10 +60,13 @@ namespace TextHub
         {
             OpenFIleModes = new ObservableCollection<string>() { "Просмотр", "Редактирование" };
             OpenWindowModes = new ObservableCollection<string>() { "Текущее окно", "Новое окно" };
+            Formats = new ObservableCollection<string>() { "RTF", "MD", "XML" };
             SelectedOpenFileMode = OpenFIleModes[1];
+            SelectedFormat = Formats[0];
             SelectedOpenWindowMode = OpenWindowModes[0];
             FullPath = isNew ? path + Path.DirectorySeparatorChar + NewFileStandardPlaceHolder : path;
             FileModeChoiceVisibility = isNew ? Visibility.Collapsed : Visibility.Visible;
+            FormatChoiceVisibility = isNew ? Visibility.Visible : Visibility.Collapsed;
             DialogResult = false;
         }
 
@@ -70,6 +83,22 @@ namespace TextHub
             {
                 fileModeChoiceVisibility = value;
                 OnPropertyChanged("FileModeChoiceVisibility");
+            }
+        }
+
+        private Visibility formatChoiceVisibility;
+        /// <summary>
+        /// Visibility of the ComboBox representing the choice of the format of the file
+        /// Visible, when the project is created
+        /// Collapsed, when the project is opened
+        /// </summary>
+        public Visibility FormatChoiceVisibility
+        {
+            get { return formatChoiceVisibility; }
+            set
+            {
+                formatChoiceVisibility = value;
+                OnPropertyChanged("FormatChoiceVisibility");
             }
         }
 

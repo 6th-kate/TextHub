@@ -22,6 +22,7 @@ namespace TextHub
         string SelectedOpenWindowMode { get; }
         string SelectedOpenFileMode { get; }
         string NewName { get; }
+        string SelectedFormat { get; }
         TextHubVersion NewVersion { get; }
     }
 
@@ -31,12 +32,14 @@ namespace TextHub
         private string _openingDialogFullPath;
         private string _selectedOpenWindowMode;
         private string _selectedOpenFileMode;
+        private string _selectedFormat;
         private string _newName;
         private TextHubVersion _newVersion;
 
         public string OpeningDialogFullPath => _openingDialogFullPath;
         public string SelectedOpenWindowMode => _selectedOpenWindowMode;
         public string SelectedOpenFileMode => _selectedOpenFileMode;
+        public string SelectedFormat => _selectedFormat;
         public string NewName => _newName;
         TextHubVersion IMessageService.NewVersion => _newVersion;
 
@@ -52,6 +55,10 @@ namespace TextHub
             if (isFile)
             {
                 _selectedOpenFileMode = ((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode;
+            }
+            else
+            {
+                _selectedFormat = ((OpeningDialogViewModel)openingDialog.DataContext).SelectedFormat;
             }
             return ((OpeningDialogViewModel)openingDialog.DataContext).DialogResult;
         }

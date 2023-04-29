@@ -98,7 +98,21 @@ namespace TextHub
                 {
                     try
                     {
-                        TextHubProject project = TextHubProject.MakeNewProject(messageService.OpeningDialogFullPath);
+                        TextHubProject project;
+
+                        if (messageService.SelectedFormat.Equals("RTF"))
+                        {
+                            project = TextHubProjectRTF.MakeNewProject(messageService.OpeningDialogFullPath);
+                        }
+                        else if (messageService.SelectedFormat.Equals("MD"))
+                        {
+                            project = TextHubProjectMD.MakeNewProject(messageService.OpeningDialogFullPath);
+                        }
+                        else
+                        {
+                            project = TextHubProjectXML.MakeNewProject(messageService.OpeningDialogFullPath);
+                        }
+
                         if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
@@ -161,7 +175,7 @@ namespace TextHub
             public void Execute(object parameter)
             {
                 // Dialog to choose file
-                string selectedFile = messageService.OpenFile("Rich text format files (*.rtf)|*.rtf", "Выберите документ, который хотите открыть в качестве проекта", false, false);
+                string selectedFile = messageService.OpenFile("Text format files|*.rtf,*.md,*.xml", "Выберите документ, который хотите открыть в качестве проекта", false, false);
                 if (selectedFile == null)
                 {
                     messageService.ShowInformation("Документ не был выбран", "Проект не создан");
