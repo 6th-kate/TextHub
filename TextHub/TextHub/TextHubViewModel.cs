@@ -15,6 +15,8 @@ namespace TextHub
         // Static values of width of documents and versions panels
         private const double sideBarsOpenedWidth = 250;
         private const double sideBarsClosedWidth = 45;
+
+        IMessageService messageService = new MessageService();
         /// <summary>
         /// The list of projects currently opened in the app
         /// </summary>

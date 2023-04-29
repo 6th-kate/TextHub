@@ -67,77 +67,54 @@ namespace TextHub
         /// </summary>
         public class NewDocumentCommand : ICommand
         {
-            // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
-            // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
             {
                 add { CommandManager.RequerySuggested += value; }
                 remove { CommandManager.RequerySuggested -= value; }
             }
 
-            /// <summary>
-            /// Initialises a new instance of NewDocumentCommand
-            /// </summary>
-            /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal NewDocumentCommand(TextHubViewModel viewModel)
+            internal NewDocumentCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
-            /// <summary>
-            /// Indicates if the command can be executed or not
-            /// </summary>
-            /// <param name="parameter">Command parameter</param>
-            /// <returns>True, if the command can be executed, false otherwise</returns>
             public bool CanExecute(object parameter)
             {
                 return true;
             }
-            /// <summary>
-            /// Implements the logic of the creation of a new project
-            /// </summary>
-            /// <param name="parameter">The main window</param>
+
             public void Execute(object parameter)
             {
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
+                string selectedFolder = messageService.OpenFolder("Выберите папку, в которой хотите создать проект", true, false);
+                if (selectedFolder == null)
                 {
-                    IsFolderPicker = true,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = true,
-                    Title = "Выберите папку, в которой хотите создать проект"
-                };
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    MessageBox.Show("Папка не была выбрана", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Папка не была выбрана", "Проект не создан");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName, true)
-                {
-                    Owner = (System.Windows.Window)parameter
-                };
-                openingDialog.ShowDialog();
-                if (((OpeningDialogViewModel)openingDialog.DataContext).DialogResult)
+                if (messageService.ShowOpeningDialog(selectedFolder, parameter, false))
                 {
                     try
                     {
                         TextHubProject project;
 
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedFormat.Equals("RTF"))
+                        if (messageService.SelectedFormat.Equals("RTF"))
                         {
-                            project = TextHubProjectRTF.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                            project = TextHubProjectRTF.MakeNewProject(messageService.OpeningDialogFullPath);
                         }
-                        else if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedFormat.Equals("MD"))
+                        else if (messageService.SelectedFormat.Equals("MD"))
                         {
-                            project = TextHubProjectMD.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                            project = TextHubProjectMD.MakeNewProject(messageService.OpeningDialogFullPath);
                         }
                         else
                         {
-                            project = TextHubProjectXML.MakeNewProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                            project = TextHubProjectXML.MakeNewProject(messageService.OpeningDialogFullPath);
                         }
 
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
                             ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
@@ -150,7 +127,7 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -163,6 +140,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -175,9 +153,10 @@ namespace TextHub
             /// Initialises a new instance of OpenDocumentCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal OpenDocumentCommand(TextHubViewModel viewModel)
+            internal OpenDocumentCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -197,34 +176,20 @@ namespace TextHub
             public void Execute(object parameter)
             {
                 // Dialog to choose file
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
+                string selectedFile = messageService.OpenFile("Text format files|*.rtf,*.md,*.xml", "Выберите документ, который хотите открыть в качестве проекта", false, false);
+                if (selectedFile == null)
                 {
-                    IsFolderPicker = false,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = false
-                };
-                dialog.Filters.Add(new CommonFileDialogFilter("Rich text format files", "*.rtf"));
-                dialog.Filters.Add(new CommonFileDialogFilter("Markdown files", "*.md"));
-                dialog.Filters.Add(new CommonFileDialogFilter("XML files", "*.xml"));
-                dialog.Title = "Выберите документ, который хотите открыть в качестве проекта";
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Документ не был выбран", "Проект не создан");
+                    //MessageBox.Show("Документ не был выбран", "Проект не создан", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
-                // Dialog to confirm the choice and settings
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName)
-                {
-                    Owner = (System.Windows.Window)parameter
-                };
-                openingDialog.ShowDialog();
-                if (((OpeningDialogViewModel)openingDialog.DataContext).DialogResult)
+                if (messageService.ShowOpeningDialog(selectedFile, parameter, true))
                 {
                     try
                     {
                         // Opens the document
                         TextHubProject project;
-                        string filePath = ((OpeningDialogViewModel)openingDialog.DataContext).FullPath;
+                        string filePath = messageService.OpeningDialogFullPath;
                         if (filePath.EndsWith(".rtf"))
                         {
                             project = TextHubProjectRTF.ParseFile(filePath);
@@ -242,11 +207,11 @@ namespace TextHub
                             throw new ArgumentException("Файл должен быть в формате .rtf, .md или .xml");
                         }
 
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode == "Просмотр")
+                        if (messageService.SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
                         }
-                        if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenWindowMode == "Новое окно")
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
                         {
                             MainWindow newWindow = new MainWindow();
                             ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
@@ -259,7 +224,7 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -272,6 +237,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -284,9 +250,10 @@ namespace TextHub
             /// Initialises a new instance of OpenProjectCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal OpenProjectCommand(TextHubViewModel viewModel)
+            internal OpenProjectCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -305,20 +272,14 @@ namespace TextHub
             /// <param name="parameter">The main window</param>
             public void Execute(object parameter)
             {
-                // The dialog to choose a folder
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog
+
+                string selectedFolder = messageService.OpenFolder("Выберите проект, который хотите открыть", false, false);
+                if (selectedFolder == null)
                 {
-                    IsFolderPicker = true,
-                    Multiselect = false,
-                    AllowNonFileSystemItems = false,
-                    Title = "Выберите проект, который хотите открыть"
-                };
-                if (dialog.ShowDialog() != CommonFileDialogResult.Ok)
-                {
-                    MessageBox.Show("Проект не был выбран", "Проект не открыт", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Проект не был выбран", "Проект не открыт");
                     return;
                 }
-                OpeningDialog openingDialog = new OpeningDialog(dialog.FileName)
+                /*OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
                 {
                     Owner = (System.Windows.Window)parameter
                 };
@@ -366,7 +327,33 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
+                    }
+                }*/
+                if (messageService.ShowOpeningDialog(selectedFolder, parameter, true))
+                {
+                    try
+                    {
+                        // Opens the project
+                        TextHubProject project = TextHubProject.ParseProject(messageService.OpeningDialogFullPath);
+                        if (messageService.SelectedOpenFileMode == "Просмотр")
+                        {
+                            project.Versions[project.Versions.Count - 1].Changeable = false;
+                        }
+                        if (messageService.SelectedOpenWindowMode == "Новое окно")
+                        {
+                            MainWindow newWindow = new MainWindow();
+                            ((TextHubViewModel)newWindow.DataContext).TextHubProjects.Add(project);
+                            newWindow.Show();
+                        }
+                        else
+                        {
+                            textHubViewModel.TextHubProjects.Add(project);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -426,6 +413,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             public event EventHandler CanExecuteChanged
             {
@@ -437,9 +425,10 @@ namespace TextHub
             /// Initialises a new instance of SaveNewVersionCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal SaveNewVersionCommand(TextHubViewModel viewModel)
+            internal SaveNewVersionCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -461,7 +450,7 @@ namespace TextHub
                 if (textHubViewModel.SelectedVersion != null)
                 {
                     // A dialog to choose the name for the version
-                    ChooseNameDialog dialog = new ChooseNameDialog
+                    /*ChooseNameDialog dialog = new ChooseNameDialog
                     {
                         Owner = (MainWindow)parameter
                     };
@@ -479,7 +468,23 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    // Creates the version
+                    if (messageService.ShowNewNameDialog(parameter))
+                    {
+                        try
+                        {
+                            if (textHubViewModel.SelectedVersion.Changeable)
+                            {
+                                textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                            }
+                            textHubViewModel.SelectedVersion.Project.SaveNewVersion(messageService.NewName);
+                        }
+                        catch (Exception ex)
+                        {
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }
@@ -493,6 +498,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -505,9 +511,10 @@ namespace TextHub
             /// Initialises a new instance of MakeNewSubprojectCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal MakeNewSubprojectCommand(TextHubViewModel viewModel)
+            internal MakeNewSubprojectCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -528,7 +535,7 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    // Dialog to choose a name for the subproject
+                    /*// Dialog to choose a name for the subproject
                     ChooseNameDialog dialog = new ChooseNameDialog
                     {
                         Owner = (MainWindow)parameter
@@ -544,7 +551,22 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    if (messageService.ShowNewNameDialog(parameter))
+                    {
+                        // Creates the subproject
+                        try
+                        {
+                            textHubViewModel.TextHubProjects.Add(textHubViewModel.SelectedVersion.Project.MakeSubproject(textHubViewModel.SelectedVersion,
+                                messageService.NewName));
+                        }
+                        catch (Exception ex)
+                        {
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }
@@ -558,6 +580,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -570,9 +593,10 @@ namespace TextHub
             /// Initialises a new instance of HighlightTextCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal HighlightTextCommand(TextHubViewModel viewModel)
+            internal HighlightTextCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -593,12 +617,18 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    ColorDialog dialog = new ColorDialog();
+
+                    if (messageService.ShowColorDialog(out Color selectedColor) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.BackgroundProperty,
+                            new SolidColorBrush(selectedColor));
+                    }
+                    /*ColorDialog dialog = new ColorDialog();
                     if (dialog.ShowDialog() == DialogResult.OK && parameter is System.Windows.Controls.RichTextBox box)
                     {
                         box.Selection.ApplyPropertyValue(TextElement.BackgroundProperty,
                            new SolidColorBrush(Color.FromArgb(dialog.Color.A, dialog.Color.R, dialog.Color.G, dialog.Color.B)));
-                    }
+                    }*/
                 }
             }
         }
@@ -610,6 +640,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -622,9 +653,10 @@ namespace TextHub
             /// Initialises a new instance of ColorTextCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal ColorTextCommand(TextHubViewModel viewModel)
+            internal ColorTextCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -644,12 +676,18 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    ColorDialog dialog = new ColorDialog();
+
+                    if (messageService.ShowColorDialog(out Color selectedColor) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.ForegroundProperty,
+                            new SolidColorBrush(selectedColor));
+                    }
+                    /*ColorDialog dialog = new ColorDialog();
                     if (dialog.ShowDialog() == DialogResult.OK && parameter is System.Windows.Controls.RichTextBox box)
                     {
                         box.Selection.ApplyPropertyValue(TextElement.ForegroundProperty,
                             new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(dialog.Color.A, dialog.Color.R, dialog.Color.G, dialog.Color.B)));
-                    }
+                    }*/
                 }
             }
         }
@@ -661,6 +699,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -673,9 +712,10 @@ namespace TextHub
             /// Initialises a new instance of ChangeFontCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal ChangeFontCommand(TextHubViewModel viewModel)
+            internal ChangeFontCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -695,7 +735,21 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    FontDialog dialog = new FontDialog
+                    if (messageService.ShowFontDialog(out string fontFamily, out double fontSize, out bool isBold, out bool isItalic) && parameter is System.Windows.Controls.RichTextBox box)
+                    {
+                        box.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily(fontFamily));
+                        box.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, fontSize);
+                        if (isBold)
+                        {
+                            box.Selection.ApplyPropertyValue(TextElement.FontWeightProperty, System.Windows.FontWeights.Bold);
+                        }
+                        if (isItalic)
+                        {
+                            box.Selection.ApplyPropertyValue(TextElement.FontStyleProperty, System.Windows.FontStyles.Italic);
+                        }
+                    }
+
+                    /*FontDialog dialog = new FontDialog
                     {
                         ShowColor = false,
                         ShowEffects = false
@@ -712,7 +766,7 @@ namespace TextHub
                         {
                             box.Selection.ApplyPropertyValue(TextElement.FontStyleProperty, System.Windows.FontStyles.Italic);
                         }
-                    }
+                    }*/
                 }
             }
         }
@@ -722,11 +776,18 @@ namespace TextHub
         /// </summary>
         public class InsertImageCommand : ICommand
         {
+            private readonly IMessageService messageService;
+
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
             {
                 add { CommandManager.RequerySuggested += value; }
                 remove { CommandManager.RequerySuggested -= value; }
+            }
+
+            internal InsertImageCommand(IMessageService messageService)
+            {
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -746,7 +807,13 @@ namespace TextHub
             {
                 if (parameter is System.Windows.Controls.RichTextBox box)
                 {
-                    CommonOpenFileDialog dialog = new CommonOpenFileDialog
+                    string selectedFile = messageService.OpenFile("Image files|*.jpeg,*.jpg,*.png,*.bmp", "Выберите изображение", true, false);
+                    if (selectedFile != null)
+                    {
+                        Clipboard.SetDataObject(new System.Drawing.Bitmap(selectedFile));
+                        box.Paste();
+                    }
+                    /*CommonOpenFileDialog dialog = new CommonOpenFileDialog
                     {
                         IsFolderPicker = false,
                         Multiselect = false
@@ -756,7 +823,7 @@ namespace TextHub
                     {
                         Clipboard.SetDataObject(new System.Drawing.Bitmap(dialog.FileName));
                         box.Paste();
-                    }
+                    }*/
                 }
             }
         }
@@ -807,6 +874,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -819,9 +887,10 @@ namespace TextHub
             /// Initialises a new instance of CompareToPreviousCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal CompareToPreviousCommand(TextHubViewModel viewModel)
+            internal CompareToPreviousCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -846,7 +915,8 @@ namespace TextHub
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) == 0)
                 {
-                    MessageBox.Show("Это самая ранняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Это самая ранняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Это самая ранняя версия", "Сравнение невозможно");
                 }
                 else
                 {
@@ -898,7 +968,8 @@ namespace TextHub
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        messageService.ShowError(ex.Message);
                     }
                 }
             }
@@ -911,6 +982,7 @@ namespace TextHub
         {
             // The viewModel, in which the command is called
             private readonly TextHubViewModel textHubViewModel;
+            private readonly IMessageService messageService;
 
             // Reset of basic canExecute delegate
             public event EventHandler CanExecuteChanged
@@ -923,9 +995,10 @@ namespace TextHub
             /// Initialises a new instance of CompareToChosenVersionCommand
             /// </summary>
             /// <param name="viewModel">The viewModel, in which the command is called</param>
-            internal CompareToChosenVersionCommand(TextHubViewModel viewModel)
+            internal CompareToChosenVersionCommand(TextHubViewModel viewModel, IMessageService messageService)
             {
                 textHubViewModel = viewModel;
+                this.messageService = messageService;
             }
 
             /// <summary>
@@ -947,11 +1020,12 @@ namespace TextHub
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.Count < 2)
                 {
-                    MessageBox.Show("Это последняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Это последняя версия", "Сравнение невозможно", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    messageService.ShowInformation("Это самая ранняя версия", "Сравнение невозможно");
                 }
                 else
                 {
-                    ChooseVersionDialog dialog = new ChooseVersionDialog(textHubViewModel.SelectedVersion.Project.Versions)
+                    /*ChooseVersionDialog dialog = new ChooseVersionDialog(textHubViewModel.SelectedVersion.Project.Versions)
                     {
                         Owner = (MainWindow)parameter
                     };
@@ -1004,7 +1078,46 @@ namespace TextHub
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
+                        }
+                    }*/
+                    if (messageService.ShowChooseVersionDialog(parameter, textHubViewModel.SelectedVersion.Project))
+                    {
+                        try
+                        {
+                            FlowDocument newText = new FlowDocument();
+                            TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
+                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
+                            {
+                                newTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            textHubViewModel.NewText = newTextRange.Text;
+                            FlowDocument oldText = new FlowDocument();
+                            TextRange oldTextRange = new TextRange(oldText.ContentStart, oldText.ContentEnd);
+                            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(messageService.NewVersion))))
+                            {
+                                oldTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            textHubViewModel.NewText = newTextRange.Text;
+                            textHubViewModel.OldText = oldTextRange.Text;
+                            textHubViewModel.NewTextHeader = textHubViewModel.SelectedVersion.Title;
+                            textHubViewModel.OldTextHeader = messageService.NewVersion.Title;
+
+                            textHubViewModel.EditingTabVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.FileTabVisibility = System.Windows.Visibility.Collapsed;
+
+                            textHubViewModel.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.DiffViewVisibility = System.Windows.Visibility.Visible;
+
+                            textHubViewModel.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
+                            textHubViewModel.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
+                        }
+                        catch (Exception ex)
+                        {
+                            //MessageBox.Show(ex.Message, "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            messageService.ShowError(ex.Message);
                         }
                     }
                 }
