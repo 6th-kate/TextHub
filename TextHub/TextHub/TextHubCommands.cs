@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 namespace TextHub
 {
@@ -169,7 +170,7 @@ namespace TextHub
             }
 
             /// <summary>
-            /// Implements the logic of the opening of an .rtf document
+            /// Implements the logic of the opening of a document
             /// </summary>
             /// <param name="parameter">The main window</param>
             public void Execute(object parameter)
@@ -289,7 +290,26 @@ namespace TextHub
                     try
                     {
                         // Opens the project
-                        TextHubProject project = TextHubProject.ParseProject(((OpeningDialogViewModel)openingDialog.DataContext).FullPath);
+                        string folderPath = ((OpeningDialogViewModel)openingDialog.DataContext).FullPath;
+                        string format = TextHubProject.GetProjectFormat(folderPath);
+                        TextHubProject project;
+                        if (format.Equals("RTF"))
+                        {
+                            project = TextHubProjectRTF.ParseProject(folderPath);
+                        }
+                        else if (format.Equals("MD"))
+                        {
+                            project = TextHubProjectMD.ParseProject(folderPath);
+                        }
+                        else if (format.Equals("XML"))
+                        {
+                            project = TextHubProjectXML.ParseProject(folderPath);
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Файл должен быть в формате .rtf, .md или .xml");
+                        }
+
                         if (((OpeningDialogViewModel)openingDialog.DataContext).SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
@@ -381,7 +401,7 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null)
                 {
-                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.MainRTBHelper.CurrentText);
                 }
             }
         }
@@ -442,7 +462,7 @@ namespace TextHub
                         {
                             if (textHubViewModel.SelectedVersion.Changeable)
                             {
-                                textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                                textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.MainRTBHelper.CurrentText);
                             }
                             textHubViewModel.SelectedVersion.Project.SaveNewVersion(((ChooseNameViewModel)dialog.DataContext).NewName);
                         }
@@ -891,7 +911,7 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null && textHubViewModel.SelectedProject != null && textHubViewModel.SelectedVersion.Changeable)
                 {
-                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.MainRTBHelper.CurrentText);
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) == 0)
                 {
@@ -906,31 +926,45 @@ namespace TextHub
                         TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
                         {
-                            newTextRange.Load(stream, DataFormats.Rtf);
+                            if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                            {
+                                newTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            else
+                            {
+                                newTextRange.Load(stream, DataFormats.Text);
+                            }
                         }
-                        textHubViewModel.NewText = newTextRange.Text;
+                        textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                         FlowDocument oldText = new FlowDocument();
                         TextRange oldTextRange = new TextRange(oldText.ContentStart, oldText.ContentEnd);
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(
                             textHubViewModel.SelectedVersion.Project.Versions[textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) - 1]))))
                         {
-                            oldTextRange.Load(stream, DataFormats.Rtf);
+                            if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                            {
+                                oldTextRange.Load(stream, DataFormats.Rtf);
+                            }
+                            else
+                            {
+                                oldTextRange.Load(stream, DataFormats.Text);
+                            }
                         }
-                        textHubViewModel.NewText = newTextRange.Text;
-                        textHubViewModel.OldText = oldTextRange.Text;
-                        textHubViewModel.NewTextHeader = textHubViewModel.SelectedVersion.Title;
-                        textHubViewModel.OldTextHeader =
+                        textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
+                        textHubViewModel.MainRTBHelper.OldText = oldTextRange.Text;
+                        textHubViewModel.MainRTBHelper.NewTextHeader = textHubViewModel.SelectedVersion.Title;
+                        textHubViewModel.MainRTBHelper.OldTextHeader =
                             textHubViewModel.SelectedVersion.Project.Versions[textHubViewModel.SelectedVersion.Project.Versions.IndexOf(textHubViewModel.SelectedVersion) - 1].Title;
 
-                        textHubViewModel.EditingTabVisibility = System.Windows.Visibility.Collapsed;
-                        textHubViewModel.FileTabVisibility = System.Windows.Visibility.Collapsed;
+                        textHubViewModel.EditingTabHelper.EditingTabVisibility = System.Windows.Visibility.Collapsed;
+                        textHubViewModel.FileTabHelper.FileTabVisibility = System.Windows.Visibility.Collapsed;
 
-                        textHubViewModel.MainRTBVisibility = System.Windows.Visibility.Collapsed;
-                        textHubViewModel.DiffViewVisibility = System.Windows.Visibility.Visible;
+                        textHubViewModel.MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                        textHubViewModel.MainRTBHelper.DiffViewVisibility = System.Windows.Visibility.Visible;
 
-                        textHubViewModel.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
-                        textHubViewModel.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
-                        textHubViewModel.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
+                        textHubViewModel.ComparisonTabHelper.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
+                        textHubViewModel.ComparisonTabHelper.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
+                        textHubViewModel.ComparisonTabHelper.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
                     }
                     catch (Exception ex)
                     {
@@ -982,7 +1016,7 @@ namespace TextHub
             {
                 if (textHubViewModel.SelectedVersion != null && textHubViewModel.SelectedProject != null && textHubViewModel.SelectedVersion.Changeable)
                 {
-                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.CurrentText);
+                    textHubViewModel.SelectedVersion.Project.Save(textHubViewModel.MainRTBHelper.CurrentText);
                 }
                 if (textHubViewModel.SelectedVersion.Project.Versions.Count < 2)
                 {
@@ -1004,29 +1038,43 @@ namespace TextHub
                             TextRange newTextRange = new TextRange(newText.ContentStart, newText.ContentEnd);
                             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(textHubViewModel.SelectedVersion))))
                             {
-                                newTextRange.Load(stream, DataFormats.Rtf);
+                                if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                                {
+                                    newTextRange.Load(stream, DataFormats.Rtf);
+                                }
+                                else
+                                {
+                                    newTextRange.Load(stream, DataFormats.Text);
+                                }
                             }
-                            textHubViewModel.NewText = newTextRange.Text;
+                            textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
                             FlowDocument oldText = new FlowDocument();
                             TextRange oldTextRange = new TextRange(oldText.ContentStart, oldText.ContentEnd);
                             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(textHubViewModel.SelectedVersion.Project.GetText(((ChooseVersionViewModel)dialog.DataContext).SelectedVersion))))
                             {
-                                oldTextRange.Load(stream, DataFormats.Rtf);
+                                if (textHubViewModel.SelectedVersion.Project.GetType() == typeof(TextHubProjectRTF))
+                                {
+                                    oldTextRange.Load(stream, DataFormats.Rtf);
+                                }
+                                else
+                                {
+                                    oldTextRange.Load(stream, DataFormats.Text);
+                                }
                             }
-                            textHubViewModel.NewText = newTextRange.Text;
-                            textHubViewModel.OldText = oldTextRange.Text;
-                            textHubViewModel.NewTextHeader = textHubViewModel.SelectedVersion.Title;
-                            textHubViewModel.OldTextHeader = ((ChooseVersionViewModel)dialog.DataContext).SelectedVersion.Title;
+                            textHubViewModel.MainRTBHelper.NewText = newTextRange.Text;
+                            textHubViewModel.MainRTBHelper.OldText = oldTextRange.Text;
+                            textHubViewModel.MainRTBHelper.NewTextHeader = textHubViewModel.SelectedVersion.Title;
+                            textHubViewModel.MainRTBHelper.OldTextHeader = ((ChooseVersionViewModel)dialog.DataContext).SelectedVersion.Title;
 
-                            textHubViewModel.EditingTabVisibility = System.Windows.Visibility.Collapsed;
-                            textHubViewModel.FileTabVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.EditingTabHelper.EditingTabVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.FileTabHelper.FileTabVisibility = System.Windows.Visibility.Collapsed;
 
-                            textHubViewModel.MainRTBVisibility = System.Windows.Visibility.Collapsed;
-                            textHubViewModel.DiffViewVisibility = System.Windows.Visibility.Visible;
+                            textHubViewModel.MainRTBHelper.MainRTBVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.MainRTBHelper.DiffViewVisibility = System.Windows.Visibility.Visible;
 
-                            textHubViewModel.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
-                            textHubViewModel.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
-                            textHubViewModel.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.ComparisonTabHelper.CloseComparisonButtonVisibility = System.Windows.Visibility.Visible;
+                            textHubViewModel.ComparisonTabHelper.CompareToPreceedingVersionButtonVisibility = System.Windows.Visibility.Collapsed;
+                            textHubViewModel.ComparisonTabHelper.ChooseVersionToCompareButtonVisibility = System.Windows.Visibility.Collapsed;
                         }
                         catch (Exception ex)
                         {

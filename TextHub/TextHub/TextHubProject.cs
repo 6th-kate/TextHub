@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 
 namespace TextHub
 {
     /// <summary>
     /// Represents the standard project made by TextHub app
     /// </summary>
-    class TextHubProject
+    abstract class TextHubProject
     {
         // The standard name of the directory where all the versions are contained
-        private const string versionsDirectoryName = "versions";
+        protected const string versionsDirectoryName = "versions";
         // The standard name of the directory where all the subprojects are contained
-        private const string subversionsDirectoryName = "subversions";
+        protected const string subversionsDirectoryName = "subversions";
 
         /// <summary>
         /// The full path to the main project folder
         /// </summary>
-        private string projectFolderPath;
+        protected string projectFolderPath;
         /// <summary>
         /// The list of versions of the project
         /// </summary>
@@ -30,36 +29,18 @@ namespace TextHub
         public string Title { get; set; }
 
         /// <summary>
-        /// Initializes the starting properties of project
-        /// </summary>
-        /// <param name="name">New project name</param>
-        /// <param name="folderPath">The full path to the main project folder</param>
-        /// <param name="currentVersionPath">The relative path to the main (and at the same time current) version of the project</param>
-        private TextHubProject(string name, string folderPath, string currentVersionPath)
-        {
-            Title = name;
-            Versions = new ObservableCollection<TextHubVersion>();
-            Versions.Add(new TextHubVersion(currentVersionPath, 0, true, this));
-            projectFolderPath = folderPath;
-        }
-        /// <summary>
         /// Initializes the starting properties of project. No versions are initialized
         /// </summary>
         /// <param name="name">New project name</param>
         /// <param name="folderPath">The full path to the main project folder</param>
-        private TextHubProject(string name, string folderPath)
-        {
-            Title = name;
-            Versions = new ObservableCollection<TextHubVersion>();
-            projectFolderPath = folderPath;
-        }
+        protected TextHubProject() { }
 
         /// <summary>
         /// Creates new instance of a project
         /// </summary>
         /// <param name="newFolderPath">The full path to the new (and still absent) project folder</param>
         /// <returns>New project with the chosen name and a single (and at the same time current) version, which is void</returns>
-        public static TextHubProject MakeNewProject(string newFolderPath)
+        protected static string MakeNewProject(string newFolderPath, string format)
         {
             string title = GetName(newFolderPath);
             if (title.Equals(OpeningDialogViewModel.NewFileStandardPlaceHolder))
@@ -75,29 +56,25 @@ namespace TextHub
                 throw new IOException("Директория с таким именем уже существует");
             }
             Directory.CreateDirectory(newFolderPath);
-            File.Create(newFolderPath + Path.DirectorySeparatorChar + title + ".rtf").Close();
+            File.Create(newFolderPath + Path.DirectorySeparatorChar + title + format).Close();
             File.Create(GetPointerFullPath(newFolderPath)).Close();
-            File.WriteAllLines(GetPointerFullPath(newFolderPath), new string[] { title + ".rtf" });
+            File.WriteAllLines(GetPointerFullPath(newFolderPath), new string[] { title + format });
             File.SetAttributes(GetPointerFullPath(newFolderPath), File.GetAttributes(GetPointerFullPath(newFolderPath)) | FileAttributes.Hidden);
             Directory.CreateDirectory(GetVersionsDirectoryFullPath(newFolderPath));
             Directory.CreateDirectory(GetSubversionsDirectoryFullPath(newFolderPath));
-            return new TextHubProject(title, newFolderPath, title + ".rtf");
+            return title;
         }
 
         /// <summary>
-        /// Parses an .rtf file into a new project.
+        /// Parses a file into a new project.
         /// </summary>
         /// <param name="filePath">The full path to the file to be parsed</param>
         /// <returns>A new project with a single (and at the same time current) version, which is a cope of the chosen file</returns>
-        public static TextHubProject ParseFile(string filePath)
+        protected static string[] ParseFile(string filePath)
         {
             if (!File.Exists(filePath))
             {
                 throw new ArgumentException("Файл не существует");
-            }
-            if (!filePath.EndsWith(".rtf"))
-            {
-                throw new ArgumentException("Файл должен быть в формате .rtf");
             }
             string shortPath = GetName(filePath);
             string title = shortPath.Split('.')[0];
@@ -114,7 +91,57 @@ namespace TextHub
             File.SetAttributes(GetPointerFullPath(folderPath), File.GetAttributes(GetPointerFullPath(folderPath)) | FileAttributes.Hidden);
             Directory.CreateDirectory(GetVersionsDirectoryFullPath(folderPath));
             Directory.CreateDirectory(GetSubversionsDirectoryFullPath(folderPath));
-            return new TextHubProject(title, folderPath, shortPath);
+            return new string[3] { title, folderPath, shortPath };
+        }
+
+        public static string GetProjectFormat(string folderPath)
+        {
+            string pointerPath = GetPointerFullPath(folderPath);
+            if (File.Exists(pointerPath))
+            {
+                File.SetAttributes(pointerPath, File.GetAttributes(pointerPath) & ~FileAttributes.Hidden);
+                List<string> versionPaths = new List<string>(File.ReadAllLines(pointerPath));
+                File.SetAttributes(pointerPath, File.GetAttributes(pointerPath) | FileAttributes.Hidden);
+                if (versionPaths.Count > 0)
+                {
+                    if (versionPaths[0].EndsWith(".rtf"))
+                    {
+                        return "RTF";
+                    }
+                    else if (versionPaths[0].EndsWith(".md"))
+                    {
+                        return "MD";
+                    }
+                    else if (versionPaths[0].EndsWith(".xml"))
+                    {
+                        return "XML";
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Incorrect project format");
+                    }
+                }
+            }
+            string[] probableMainFilesRTF = Directory.GetFiles(folderPath, "*.rtf");
+            string[] probableMainFilesMD = Directory.GetFiles(folderPath, "*.md");
+            string[] probableMainFilesXML = Directory.GetFiles(folderPath, "*.xml");
+            if (probableMainFilesRTF.Length == 0 && probableMainFilesMD.Length == 0 && probableMainFilesXML.Length == 0)
+            {
+                throw new ArgumentException("Incorrect project format");
+            }
+            if (probableMainFilesRTF.Length >= probableMainFilesMD.Length)
+            {
+                if (probableMainFilesRTF.Length >= probableMainFilesXML.Length)
+                {
+                    return "RTF";
+                }
+                return "XML";
+            }
+            if (probableMainFilesMD.Length >= probableMainFilesXML.Length)
+            {
+                return "MD";
+            }
+            return "XML";
         }
 
         /// <summary>
@@ -122,18 +149,19 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">The path to the folder where the project is placed</param>
         /// <returns>The model of a project with all the versions parced into TextHub versions</returns>
-        public static TextHubProject ParseProject(string folderPath)
+        protected static bool ParseProject(string folderPath)
         {
             if (!Directory.Exists(folderPath))
             {
                 throw new ArgumentException("Папка не существует");
             }
-            string projectName = GetName(folderPath);
+
             string pointerFullPath = GetPointerFullPath(folderPath);
+
             // If the project folder does not contain the version pointer file
             if (!File.Exists(pointerFullPath))
             {
-                return NoPointerToProject(folderPath);
+                return true;
             }
             if (!Directory.Exists(GetVersionsDirectoryFullPath(folderPath)))
             {
@@ -143,17 +171,7 @@ namespace TextHub
             {
                 Directory.CreateDirectory(GetSubversionsDirectoryFullPath(folderPath));
             }
-            TextHubProject project = new TextHubProject(projectName, folderPath);
-            try
-            {
-                // Parces the version list from the pointer file 
-                project.ParseVersionsFromFile(pointerFullPath);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException(ex.Message);
-            }
-            return project;
+            return false;
         }
 
         /// <summary>
@@ -161,12 +179,12 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">The path to the folder where the project is placed</param>
         /// <returns>The model of a project with all the versions parced into TextHub versions</returns>
-        private static TextHubProject NoPointerToProject(string folderPath)
+        protected static void NoPointerToProject(string folderPath, string format)
         {
             string projectName = GetName(folderPath);
             string pointerFullPath = GetPointerFullPath(folderPath);
             File.Create(pointerFullPath).Close();
-            string[] probableMainFiles = Directory.GetFiles(folderPath, "*.rtf");
+            string[] probableMainFiles = Directory.GetFiles(folderPath, "*" + format);
             if (!Directory.Exists(GetVersionsDirectoryFullPath(folderPath)))
             {
                 Directory.CreateDirectory(GetVersionsDirectoryFullPath(folderPath));
@@ -177,9 +195,9 @@ namespace TextHub
             }
             if (probableMainFiles.Length == 0 && Directory.GetFiles(GetVersionsDirectoryFullPath(folderPath)).Length == 0)
             {
-                File.Create(GetVersionsDirectoryFullPath(folderPath) + Path.DirectorySeparatorChar + projectName + "ver0.rtf");
+                File.Create(GetVersionsDirectoryFullPath(folderPath) + Path.DirectorySeparatorChar + projectName + "ver0" + format);
             }
-            // Moves all the .rtf files from the main directory into the version directory to sort them out
+            // Moves all the files from the main directory into the version directory to sort them out
             foreach (string probablyMainFile in probableMainFiles)
             {
                 string newFilePath = folderPath + Path.DirectorySeparatorChar +
@@ -190,24 +208,19 @@ namespace TextHub
                     int counter = 0;
                     newFilePath = folderPath + Path.DirectorySeparatorChar +
                         versionsDirectoryName + Path.DirectorySeparatorChar +
-                        GetFileTitle(probablyMainFile) + counter + ".rtf";
+                        GetFileTitle(probablyMainFile) + counter + format;
                     while (File.Exists(newFilePath))
                     {
                         ++counter;
                         newFilePath = folderPath + Path.DirectorySeparatorChar +
                             versionsDirectoryName + Path.DirectorySeparatorChar +
-                            GetFileTitle(probablyMainFile) + counter + ".rtf";
+                            GetFileTitle(probablyMainFile) + counter + format;
                     }
                 }
                 File.Move(probablyMainFile, newFilePath);
             }
             // Fills the pointer file with versions' paths
-            FillPointer(pointerFullPath, GetVersionsDirectoryFullPath(folderPath));
-            TextHubProject project = new TextHubProject(projectName, folderPath);
-            // Parces the version list from the pointer file 
-            project.ParseVersionsFromFile(pointerFullPath);
-            File.SetAttributes(pointerFullPath, File.GetAttributes(pointerFullPath) | FileAttributes.Hidden);
-            return project;
+            FillPointer(pointerFullPath, GetVersionsDirectoryFullPath(folderPath), format);
         }
 
         /// <summary>
@@ -215,9 +228,9 @@ namespace TextHub
         /// </summary>
         /// <param name="pointerPath">The full path to the version pointer file</param>
         /// <param name="versionsdirectoryFullPath">The full path to the directory where all the versions are contained</param>
-        private static void FillPointer(string pointerPath, string versionsdirectoryFullPath)
+        private static void FillPointer(string pointerPath, string versionsdirectoryFullPath, string format)
         {
-            string[] fileNames = Directory.GetFiles(versionsdirectoryFullPath, "*.rtf");
+            string[] fileNames = Directory.GetFiles(versionsdirectoryFullPath, "*" + format);
             var files = Array.ConvertAll(fileNames, x => new FileInfo(x));
             Array.Sort(files, (x, y) => ((x.CreationTime - y.CreationTime).TotalMinutes > 0 ? 1 : -1));
             fileNames = Array.ConvertAll(files, x => versionsDirectoryName + Path.DirectorySeparatorChar + x.Name);
@@ -230,7 +243,7 @@ namespace TextHub
         ///  Parces the version list from the pointer file 
         /// </summary>
         /// <param name="pointerPath">The full path to the version pointer file</param>
-        private void ParseVersionsFromFile(string pointerPath)
+        public void ParseVersionsFromFile(string pointerPath, string format)
         {
             // Reads all file paths from the pointer
             File.SetAttributes(pointerPath, File.GetAttributes(pointerPath) & ~FileAttributes.Hidden);
@@ -277,14 +290,14 @@ namespace TextHub
                 {
                     int counter = 0;
                     newFilePath = projectFolderPath + Path.DirectorySeparatorChar +
-                        GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + ".rtf";
-                    newShortPath = GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + ".rtf";
+                        GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + format;
+                    newShortPath = GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + format;
                     while (File.Exists(newFilePath))
                     {
                         ++counter;
                         newFilePath = projectFolderPath + Path.DirectorySeparatorChar +
-                        GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + ".rtf";
-                        newShortPath = GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + ".rtf";
+                        GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + format;
+                        newShortPath = GetFileTitle(versionPaths[versionPaths.Count - 1]) + counter + format;
                     }
                 }
                 File.Move(projectFolderPath + Path.DirectorySeparatorChar + versionPaths[versionPaths.Count - 1], newFilePath);
@@ -298,11 +311,13 @@ namespace TextHub
             File.SetAttributes(pointerPath, File.GetAttributes(pointerPath) | FileAttributes.Hidden);
         }
 
+        public virtual void SaveNewVersion(string newVersionName) { }
+
         /// <summary>
         /// Adds a new version to the project chain of versions
         /// </summary>
         /// <param name="newVersionName">The title of the new created version</param>
-        public void SaveNewVersion(string newVersionName)
+        protected void SaveNewVersion(string newVersionName, string format)
         {
             if (newVersionName.Equals(ChooseNameViewModel.NamePlaceHolder))
             {
@@ -313,7 +328,7 @@ namespace TextHub
                 throw new ArgumentException("Некорректное имя версии.");
             }
             TextHubVersion lastVersion = Versions[Versions.Count - 1];
-            string newVersionNamePath = versionsDirectoryName + Path.DirectorySeparatorChar + newVersionName + ".rtf";
+            string newVersionNamePath = versionsDirectoryName + Path.DirectorySeparatorChar + newVersionName + format;
             if (File.Exists(projectFolderPath + Path.DirectorySeparatorChar + newVersionNamePath))
             {
                 throw new ArgumentException("Версия с таким именем уже существует");
@@ -344,7 +359,7 @@ namespace TextHub
         /// </summary>
         /// <param name="filename">The short name to check</param>
         /// <returns>True, if the name of the file is prohibited tu use, false otherwise</returns>
-        private static bool NotAllowed(string filename)
+        protected static bool NotAllowed(string filename)
         {
             return filename.Contains(@"\") || filename.Contains(@"/") || filename.Contains(":") ||
                 filename.Contains("*") || filename.Contains("?") || filename.Contains('"') ||
@@ -353,13 +368,7 @@ namespace TextHub
                 filename.Contains("!") || filename.Contains("%") || filename.Contains("@");
         }
 
-        /// <summary>
-        /// Creates a new subproject and adds it to the project chain of subversions
-        /// </summary>
-        /// <param name="textHubVersion">The version on which the new subproject is based</param>
-        /// <param name="newName">New subproject name</param>
-        /// <returns>A new TextHubProject instance aka the model of the newly created subproject</returns>
-        public TextHubProject MakeSubproject(TextHubVersion textHubVersion, string newName)
+        protected string MakeSubpojectDirs(TextHubVersion textHubVersion, string newName)
         {
             if (newName.Equals(ChooseNameViewModel.NamePlaceHolder))
             {
@@ -384,33 +393,18 @@ namespace TextHub
             }
 
             Directory.CreateDirectory(newPath);
-            TextHubProject project = new TextHubProject(newName, newPath);
             Directory.CreateDirectory(GetVersionsDirectoryFullPath(newPath));
             Directory.CreateDirectory(GetSubversionsDirectoryFullPath(newPath));
-            // Copies the full version chain before the base version
-            List<string> versionPaths = new List<string>();
-            int counter = 0;
-            for (int i = 0; i < Versions.Count && Versions[i] != textHubVersion; ++i)
-            {
-                if (File.Exists(projectFolderPath + Path.DirectorySeparatorChar + Versions[i].RelativeFilePath))
-                {
-                    File.Copy(projectFolderPath + Path.DirectorySeparatorChar + Versions[i].RelativeFilePath,
-                        newPath + Path.DirectorySeparatorChar + versionsDirectoryName + Path.DirectorySeparatorChar + Versions[i].Title + ".rtf");
-                    versionPaths.Add(versionsDirectoryName + Path.DirectorySeparatorChar + Versions[i].Title + ".rtf");
-                    project.Versions.Add(new TextHubVersion(versionsDirectoryName + Path.DirectorySeparatorChar + Versions[i].Title + ".rtf", counter++, false, project));
-                }
-            }
-
-            File.Copy(projectFolderPath + Path.DirectorySeparatorChar + textHubVersion.RelativeFilePath,
-                newPath + Path.DirectorySeparatorChar + newName + ".rtf");
-            versionPaths.Add(newName + ".rtf");
-            project.Versions.Add(new TextHubVersion(newName + ".rtf", counter, true, project));
-
-            File.Create(GetPointerFullPath(newPath)).Close();
-            File.WriteAllLines(GetPointerFullPath(newPath), versionPaths);
-            File.SetAttributes(GetPointerFullPath(newPath), File.GetAttributes(GetPointerFullPath(newPath)) | FileAttributes.Hidden);
-            return project;
+            return newPath;
         }
+
+        /// <summary>
+        /// Creates a new subproject and adds it to the project chain of subversions
+        /// </summary>
+        /// <param name="textHubVersion">The version on which the new subproject is based</param>
+        /// <param name="newName">New subproject name</param>
+        /// <returns>A new TextHubProject instance aka the model of the newly created subproject</returns>
+        public virtual TextHubProject MakeSubproject(TextHubVersion textHubVersion, string newName) { return null; }
 
         /// <summary>
         /// Deletez the chosen version from the project
@@ -474,7 +468,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">Full folder path</param>
         /// <returns>The short name of the folder</returns>
-        private static string GetName(string folderPath)
+        protected static string GetName(string folderPath)
         {
             string[] path = folderPath.Split(Path.DirectorySeparatorChar);
             return path[path.Length - 1];
@@ -485,7 +479,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">Full file path</param>
         /// <returns>The title of the file</returns>
-        private static string GetFileTitle(string folderPath)
+        protected static string GetFileTitle(string folderPath)
         {
             string[] path = folderPath.Split(Path.DirectorySeparatorChar);
             return path[path.Length - 1].Split('.')[0];
@@ -496,7 +490,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">Full folder path</param>
         /// <returns>The parent directory of a folder</returns>
-        private static string GetDirectory(string folderPath)
+        protected static string GetDirectory(string folderPath)
         {
             string[] path = folderPath.Split(Path.DirectorySeparatorChar);
             string folder = path[0];
@@ -512,7 +506,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">The full folder path</param>
         /// <returns>The full path of the directory of TextHub versions corresponding to the chosen folder</returns>
-        private static string GetVersionsDirectoryFullPath(string folderPath)
+        protected static string GetVersionsDirectoryFullPath(string folderPath)
         {
             return folderPath + Path.DirectorySeparatorChar + versionsDirectoryName;
         }
@@ -522,7 +516,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">The full folder path</param>
         /// <returns>The full path of the directory of TextHub subversions corresponding to the chosen folder</returns>
-        private static string GetSubversionsDirectoryFullPath(string folderPath)
+        protected static string GetSubversionsDirectoryFullPath(string folderPath)
         {
             return folderPath + Path.DirectorySeparatorChar + subversionsDirectoryName;
         }
@@ -532,7 +526,7 @@ namespace TextHub
         /// </summary>
         /// <param name="folderPath">The full folder path</param>
         /// <returns>The full path of the versions pointer corresponding to the chosen folder</returns>
-        private static string GetPointerFullPath(string folderPath)
+        protected static string GetPointerFullPath(string folderPath)
         {
             return folderPath + Path.DirectorySeparatorChar + GetPointerName(GetName(folderPath));
         }
@@ -542,7 +536,7 @@ namespace TextHub
         /// </summary>
         /// <param name="projectName">Paroject title</param>
         /// <returns>The specific versions pointer name corresponding to the chosen project</returns>
-        private static string GetPointerName(string projectName)
+        protected static string GetPointerName(string projectName)
         {
             return "VersionsPointer" + projectName + "Project.txt";
         }
