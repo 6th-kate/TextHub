@@ -187,7 +187,25 @@ namespace TextHub
                     try
                     {
                         // Opens the document
-                        TextHubProject project = TextHubProject.ParseFile(messageService.OpeningDialogFullPath);
+                        TextHubProject project;
+                        string filePath = messageService.OpeningDialogFullPath;
+                        if (filePath.EndsWith(".rtf"))
+                        {
+                            project = TextHubProjectRTF.ParseFile(filePath);
+                        }
+                        else if (filePath.EndsWith(".md"))
+                        {
+                            project = TextHubProjectMD.ParseFile(filePath);
+                        }
+                        else if (filePath.EndsWith(".xml"))
+                        {
+                            project = TextHubProjectXML.ParseFile(filePath);
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Файл должен быть в формате .rtf, .md или .xml");
+                        }
+
                         if (messageService.SelectedOpenFileMode == "Просмотр")
                         {
                             project.Versions[project.Versions.Count - 1].Changeable = false;
