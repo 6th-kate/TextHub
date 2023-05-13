@@ -45,7 +45,7 @@ namespace TextHub
 
         public bool ShowOpeningDialog(string selectedFolder, object parameter, bool isFile)
         {
-            OpeningDialog openingDialog = new OpeningDialog(selectedFolder)
+            OpeningDialog openingDialog = new OpeningDialog(selectedFolder, !isFile)
             {
                 Owner = (System.Windows.Window)parameter
             };
